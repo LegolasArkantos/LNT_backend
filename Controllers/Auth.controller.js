@@ -24,9 +24,13 @@ const signup = async (req, res) => {
         }
 
         // Check password format (at least 8 characters, containing letters and numbers)
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])/;
+        if (password.length < 8) {
+            return res.status(501).send('Password must be at least 8 characters long')
+        }
+
         if (!passwordRegex.test(password)) {
-            return res.status(400).json({ message: 'Invalid password format' });
+            return res.status(400).send('Invalid password format');
         }
 
         const result = await User.findOne({email});
@@ -56,8 +60,6 @@ const signup = async (req, res) => {
         }
 
         const finalResult = await user.save();
-
-        // const tokens = generateToken(user._id);
 
         res.status(201).json(finalResult);
     } catch (error) {
@@ -97,23 +99,6 @@ const getAccessToken = async (req,res) => {
     res.status(200).json({accessToken: accessToken});
 };
 
-// const refreshTokens = (req, res) => {
-//     const refreshToken = req.body.refreshToken;
-
-//     if (!refreshToken) {
-//         return res.status(401).json({ message: 'Refresh token not provided' });
-//     }
-
-//     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-//         if (err) {
-//             return res.status(403).json({ message: 'Invalid refresh token' });
-//         }
-
-//         const accessToken = jwt.sign({ userId: user.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-
-//         res.json({ accessToken });
-//     });
-// };
 
 module.exports = {
     signup,

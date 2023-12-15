@@ -16,9 +16,11 @@ connectDB();
 
 // import routes here
 const authRoutes = require('./Routes/Auth.routes');
+const studentRoutes = require('./Routes/Student.routes');
 
 // use routes here
-app.use('/api/auth',authRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/student', studentRoutes)
 
 app.listen(PORT, () => {
     console.log("server connected and listening on port " + PORT);
