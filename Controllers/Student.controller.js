@@ -4,6 +4,26 @@
 const Student = require('../Models/Student.model');
 
 
+const getProfile = async (req, res) => {
+    try {
+        const studentId  = req.user.profileID;
+
+        // Find the teacher by ID and populate the 'user' and 'sessions' fields
+        const student = await Student.findById(studentId);
+
+        if (!student) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+
+        // Respond with the organized teacher data
+        res.status(200).json(student);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+
 const getStudent = async (req, res) => {
     try {
         const { studentId } = req.params;
@@ -93,7 +113,6 @@ const updateProfile = async (req, res) => {
             { $set: { ...req.body } },
             { new: true }
         );
-        console.log("hello")
         res.status(200).json(updatedStudent);
     } catch (error) {
         console.error(error);
@@ -151,6 +170,7 @@ const updateProfile = async (req, res) => {
 
 
 module.exports = {
+    getProfile,
     getStudent,
     getAllStudents,
     getMyTeachers,

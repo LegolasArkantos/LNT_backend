@@ -8,6 +8,8 @@ const router = express.Router();
 
 // router.get('/getMySessions/:studentId', authMiddleware.verifyToken, studentController.getMySessions);
 
+router.get('/profile', authMiddleware.authenticateStudent, studentController.getProfile);
+
 router.get('/getStudent/:studentId', authMiddleware.authenticateStudent, studentController.getStudent);
 
 router.get('/getAllStudents', authMiddleware.authenticateStudent, studentController.getAllStudents);
