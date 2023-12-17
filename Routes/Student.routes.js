@@ -18,5 +18,7 @@ router.patch('/updateProfile', authMiddleware.authenticateStudent, studentContro
 
 router.get('/getMyTeachers', authMiddleware.authenticateStudent, studentController.getMyTeachers);
 
+router.get('/getSubjectTeachers', authMiddleware.authenticateStudent, studentController.getSubjectTeachers);
+
 // router.get('/getAllTeachers', authMiddleware.verifyToken, studentController.getAllTeachers);
 module.exports = router;

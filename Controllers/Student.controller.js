@@ -1,5 +1,5 @@
 //const Session = require('../models/session');
-// const Teacher = require('../Models/Teacher.model');
+const Teacher = require('../Models/Teacher.model');
 // const User = require('../Models/User.model');
 const Student = require('../Models/Student.model');
 
@@ -121,6 +121,25 @@ const updateProfile = async (req, res) => {
 };
 
 
+const getSubjectTeachers = async (req, res) => {
+    try {
+        const subject = req.body.subject.toLowerCase();
+        // Fetch teachers with subjectsTaught elements converted to lowercase
+        const teachers = await Teacher.find({
+            'subjectsTaught': {
+                $in: [subject]
+            }
+        });
+
+        res.status(200).json(teachers);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+
+
 
 
 // const getMySessions = async (req, res) => {
@@ -175,5 +194,5 @@ module.exports = {
     getAllStudents,
     getMyTeachers,
     updateProfile,
-
+    getSubjectTeachers,
 };
