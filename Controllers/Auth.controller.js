@@ -86,8 +86,9 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const tokens = generateToken(user.profileID, user.role);
-        res.status(200).json(tokens);
+        const { accessToken, refreshToken } = generateToken(user.profileID, user.role);
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true ,sameSite : 'lax'});
+        res.status(200).json({accesstoken : accessToken});
 
     } catch (error) {
         console.error(error);
@@ -100,9 +101,24 @@ const getAccessToken = async (req,res) => {
     res.status(200).json({accessToken: accessToken});
 };
 
+const logout = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken === null) return res.sendStatus(400);
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Lax',
+    });
+
+    return res.status(200).send('Logged out successfully');
+
+};
+
 
 module.exports = {
     signup,
     login,
     getAccessToken,
+    logout
 };
