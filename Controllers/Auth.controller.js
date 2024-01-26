@@ -52,7 +52,7 @@ const signup = async (req, res) => {
         if (role === 'Teacher') {
             const { firstName, lastName, profilePicture, educationalCredentials, subjectsTaught} = req.body;
             subjectsTaught = subjectsTaught.map(subject => subject.toLowerCase());
-            const profile = await Teacher.create({ firstName, lastName, profilePicture, educationalCredentials, subjectsTaught,isApproved, });
+            const profile = await Teacher.create({ firstName, lastName, profilePicture, educationalCredentials, subjectsTaught});
             user.profileID = profile._id;
         } else if (role === 'Student') {
             const { firstName, lastName, profilePicture, educationalLevel } = req.body;
