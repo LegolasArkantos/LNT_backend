@@ -4,7 +4,7 @@ const notificationSchema = new mongoose.Schema({
 
     profileID: {
         type: mongoose.Schema.Types.ObjectId,
-        refPath: 'role'
+        ref: ["Teacher", "Student"]
     },
 
     notifications: [{
