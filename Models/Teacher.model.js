@@ -33,16 +33,23 @@ const teacherSchema = new mongoose.Schema({
     ref: 'Session'
 }],
 chatRooms: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ChatRoom'
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'ChatRoom'
 }],
-inReview: {
-  type: Boolean
+
+
+isApproved: {
+  type: Boolean,
+  default: false, 
 },
+
 personality: [String],
+
 careerCounselling: {
-  type: Boolean
-}
+  type : Boolean,
+  default: false,
+},
+
 });
 
 module.exports = mongoose.model('Teacher', teacherSchema);
