@@ -26,6 +26,14 @@ const studentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Session'
     }],
+    chatRooms: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ChatRoom'
+    }],
+    inReview: {
+        type: Boolean
+    },
+    personality: [String],
 });
 
 module.exports = mongoose.model('Student', studentSchema);
