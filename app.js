@@ -30,11 +30,13 @@ connectDB();
 const authRoutes = require('./Routes/Auth.routes');
 const studentRoutes = require('./Routes/Student.routes');
 const teacherRoutes = require('./Routes/Teacher.routes');
+const sessionRoutes = require('./Routes/Session.routes');
 
 // use routes here
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/teacher', teacherRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 const server = app.listen(PORT, () => {
     console.log("server connected and listening on port " + PORT);
