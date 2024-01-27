@@ -5,7 +5,8 @@ const Teacher = require('../Models/Teacher.model')
 
 const createSession = async (req, res) => {
   try {
-    const { teacherId, startTime, endTime, status, paymentStatus, subject, sessionPrice } = req.body;
+    const teacherId = req.user.profileID;
+    const { startTime, endTime, status, subject, sessionPrice } = req.body;
 
     // Find the teacher
     const teacher = await Teacher.findById(teacherId);
@@ -25,7 +26,7 @@ const createSession = async (req, res) => {
       startTime,
       endTime,
       status,
-      paymentStatus,
+      paymentStatus: 'pending',
       subject,
       sessionPrice,
     });
@@ -54,7 +55,6 @@ const createSession = async (req, res) => {
 
 const getAvailableSessions = async (req, res) => {
   try {
-    // Find sessions that are not already booked
     const availableSessions = await Session.find({ status: 'scheduled' });
 
     res.status(200).json({ sessions: availableSessions });
@@ -66,8 +66,8 @@ const getAvailableSessions = async (req, res) => {
 
 const joinSession = async (req, res) => {
     try {
-      const { sessionId } = req.params;
-      const { studentId } = req.body;
+      const sessionId  = req.params;
+      const studentId  = req.user.profileID;
   
       // Find the session
       const session = await Session.findById(sessionId);
@@ -122,8 +122,9 @@ const joinSession = async (req, res) => {
 
   const updateSession = async (req, res) => {
     try {
-      const { sessionId } = req.params;
-      const { teacherId, startTime, endTime, status, paymentStatus, subject, sessionPrice } = req.body;
+      const teacherId = req.user.profileID;
+      const sessionId  = req.params;
+      const { startTime, endTime, status, paymentStatus, subject, sessionPrice } = req.body;
   
       // Find the session
       const session = await Session.findById(sessionId);

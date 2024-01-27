@@ -88,7 +88,7 @@ const login = async (req, res) => {
 
         const { accessToken, refreshToken } = generateToken(user.profileID, user.role);
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true ,sameSite : 'lax'});
-        res.status(200).json({accesstoken : accessToken});
+        res.status(200).json({accessToken});
 
     } catch (error) {
         console.error(error);
