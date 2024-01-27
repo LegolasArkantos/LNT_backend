@@ -11,7 +11,7 @@ const teacherSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    required: true
+    
   },
   educationalCredentials: {
     type: [String],
