@@ -11,7 +11,7 @@ const studentSchema = new mongoose.Schema({
     },
     profilePicture: {
         type: String,
-        required: true
+        
     },
     educationalLevel: {
         type: String,
