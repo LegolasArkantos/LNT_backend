@@ -20,5 +20,7 @@ router.get('/getMyTeachers', authMiddleware.authenticateStudent, studentControll
 
 router.get('/getSubjectTeachers', authMiddleware.authenticateStudent, studentController.getSubjectTeachers);
 
+router.get('/top-rated-teachers', authMiddleware.authenticateStudent, studentController.getTopRatedTeachers);
+
 // router.get('/getAllTeachers', authMiddleware.verifyToken, studentController.getAllTeachers);
 module.exports = router;
