@@ -33,7 +33,7 @@ const studentSchema = new mongoose.Schema({
     inReview: {
         type: Boolean
     },
-    personality: [String],
+    personality: [Number],
 });
 
 module.exports = mongoose.model('Student', studentSchema);
