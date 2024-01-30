@@ -50,13 +50,13 @@ const signup = async (req, res) => {
         
 
         if (role === 'Teacher') {
-            const { firstName, lastName, profilePicture, educationalCredentials} = req.body;
+            const { firstName, lastName, profilePicture, educationalCredentials,personality} = req.body;
             
-            const profile = await Teacher.create({ firstName, lastName, profilePicture, educationalCredentials});
+            const profile = await Teacher.create({ firstName, lastName, profilePicture, educationalCredentials,personality});
             user.profileID = profile._id;
         } else if (role === 'Student') {
-            const { firstName, lastName, profilePicture, educationalLevel } = req.body;
-            const profile = await Student.create({ firstName, lastName, profilePicture, educationalLevel });
+            const { firstName, lastName, profilePicture, educationalLevel,personality } = req.body;
+            const profile = await Student.create({ firstName, lastName, profilePicture, educationalLevel ,personality});
             user.profileID = profile._id;
         }
 
