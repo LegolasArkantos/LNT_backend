@@ -58,6 +58,20 @@ const getStudent = async (req, res) => {
     }
 };
 
+const getTopRatedTeachers = async (req, res) => {
+    try {
+        const teachers = await Teacher.find({ rating: { $gte: 4 } });
+
+        if (!teachers) {
+            return res.status(404).json({message: 'No Teachers Found'});
+        }
+        res.status(200).json(teachers);
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
+
 
 
 
@@ -195,4 +209,5 @@ module.exports = {
     getMyTeachers,
     updateProfile,
     getSubjectTeachers,
+    getTopRatedTeachers
 };
