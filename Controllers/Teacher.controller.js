@@ -66,9 +66,11 @@ const getMyStudents = async (req, res) => {
   };
   
 
-  const getSpecificSessionAndStudents = async (req, res) => {
+  const getSpecificSession = async (req, res) => {
     try {
-        const { teacherId, sessionId } = req.params;
+
+        const teacherId = req.user.profileID;
+        const { sessionId } = req.params;
 
         // Find the teacher
         const teacher = await Teacher.findById(teacherId);
@@ -123,4 +125,5 @@ module.exports = {
     getProfile,
     getMyStudents,
     updateProfile,
+    getSpecificSession
 };
