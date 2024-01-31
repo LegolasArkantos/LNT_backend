@@ -66,57 +66,57 @@ const getMyStudents = async (req, res) => {
   };
   
 
-//   const getSpecificSessionAndStudents = async (req, res) => {
-//     try {
-//         const { teacherId, sessionId } = req.params;
+  const getSpecificSessionAndStudents = async (req, res) => {
+    try {
+        const { teacherId, sessionId } = req.params;
 
-//         // Find the teacher
-//         const teacher = await Teacher.findById(teacherId);
+        // Find the teacher
+        const teacher = await Teacher.findById(teacherId);
 
-//         if (!teacher) {
-//             return res.status(404).json({ message: 'Teacher not found' });
-//         }
+        if (!teacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
 
-//         // Find the session
-//         const session = await Session.findById(sessionId);
+        // Find the session
+        const session = await Session.findById(sessionId);
 
-//         if (!session) {
-//             return res.status(404).json({ message: 'Session not found' });
-//         }
+        if (!session) {
+            return res.status(404).json({ message: 'Session not found' });
+        }
 
-//         // Check if the session belongs to the teacher
-//         if (session.teacher.toString() !== teacherId) {
-//             return res.status(403).json({ message: 'You are not authorized to view this session' });
-//         }
+        // Check if the session belongs to the teacher
+        if (session.teacher.toString() !== teacherId) {
+            return res.status(403).json({ message: 'You are not authorized to view this session' });
+        }
 
-//         const sessionData = {
-//             subject: session.subject,
-//             startTime: session.startTime,
-//             endTime: session.endTime,
-//             students: [],
-//         };
+        const sessionData = {
+            subject: session.subject,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            students: [],
+        };
 
-//         // Loop through students of the session
-//         for (const studentId of session.students) {
-//             const student = await Student.findById(studentId).populate('user', ['firstName', 'lastName', 'email', 'profilePicture', 'contactInformation']);
+        // Loop through students of the session
+        for (const studentId of session.students) {
+            const student = await Student.findById(studentId).populate('user', ['firstName', 'lastName', 'email', 'profilePicture', 'contactInformation']);
 
-//             if (student) {
-//                 sessionData.students.push({
-//                     firstName: student.user.firstName,
-//                     lastName: student.user.lastName,
-//                     email: student.user.email,
-//                     profilePicture: student.user.profilePicture,
-//                     contactInformation: student.user.contactInformation,
-//                 });
-//             }
-//         }
+            if (student) {
+                sessionData.students.push({
+                    firstName: student.user.firstName,
+                    lastName: student.user.lastName,
+                    email: student.user.email,
+                    profilePicture: student.user.profilePicture,
+                    contactInformation: student.user.contactInformation,
+                });
+            }
+        }
 
-//         res.status(200).json({ sessionData });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Internal Server Error' });
-//     }
-// };
+        res.status(200).json({ sessionData });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
 
 
 module.exports = {
