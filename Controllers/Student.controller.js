@@ -156,50 +156,50 @@ const getSubjectTeachers = async (req, res) => {
 
 
 
-// const getMySessions = async (req, res) => {
-//     try {
-//         const { studentId } = req.params;
+const getMySessions = async (req, res) => {
+    try {
+        const { studentId } = req.params;
 
-//         // Find sessions for the student and populate the 'students' field
-//         const sessions = await Session.find({ students: studentId }).populate({
-//             path: 'students',
-//             select: 'educationalLevel -_id', // Select educationalLevel and exclude _id
-//             populate: {
-//                 path: 'user',
-//                 select: 'firstName lastName -_id' // Select firstName and lastName, exclude _id
-//             }
-//         }).select('-_id -__v'); // Exclude _id and __v fields from sessions
+        // Find sessions for the student and populate the 'students' field
+        const sessions = await Session.find({ students: studentId }).populate({
+            path: 'students',
+            select: 'educationalLevel -_id', // Select educationalLevel and exclude _id
+            populate: {
+                path: 'user',
+                select: 'firstName lastName -_id' // Select firstName and lastName, exclude _id
+            }
+        }).select('-_id -__v'); // Exclude _id and __v fields from sessions
 
-//         if (!sessions || sessions.length === 0) {
-//             return res.status(404).json({ message: 'No sessions found for this student' });
-//         }
+        if (!sessions || sessions.length === 0) {
+            return res.status(404).json({ message: 'No sessions found for this student' });
+        }
 
-//         res.status(200).json({ sessions });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Internal Server Error' });
-//     }
-// };
+        res.status(200).json({ sessions });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
 
-// const getAllTeachers = async (req, res) => {
-//     try {
-//         const teachers = await Teacher.find();
+const getAllTeachers = async (req, res) => {
+    try {
+        const teachers = await Teacher.find();
 
-//         const teacherData = teachers.map(teacher => {
-//             return {
-//                 name: teacher.user.firstName + ' ' + teacher.user.lastName,
-//                 email: teacher.user.email,
-//                 contactInformation: teacher.user.contactInformation,
-//                 profilePicture: teacher.user.profilePicture,
-//             };
-//         });
+        const teacherData = teachers.map(teacher => {
+            return {
+                name: teacher.user.firstName + ' ' + teacher.user.lastName,
+                email: teacher.user.email,
+                contactInformation: teacher.user.contactInformation,
+                profilePicture: teacher.user.profilePicture,
+            };
+        });
 
-//         res.status(200).json({ teachers: teacherData });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Internal Server Error' });
-//     }
-// };
+        res.status(200).json({ teachers: teacherData });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
 
 
 module.exports = {
