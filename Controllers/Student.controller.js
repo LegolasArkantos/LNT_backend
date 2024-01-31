@@ -158,7 +158,7 @@ const getSubjectTeachers = async (req, res) => {
 
 const getMySessions = async (req, res) => {
     try {
-        const { studentId } = req.params;
+        const studentId  = req.user.profileID;
 
         // Find sessions for the student and populate the 'students' field
         const sessions = await Session.find({ students: studentId }).populate({
@@ -209,5 +209,7 @@ module.exports = {
     getMyTeachers,
     updateProfile,
     getSubjectTeachers,
-    getTopRatedTeachers
+    getTopRatedTeachers,
+    getMySessions,
+    getAllTeachers
 };

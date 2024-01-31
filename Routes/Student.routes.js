@@ -5,9 +5,6 @@ const authMiddleware = require('../Middleware/Auth.middleware');
 const router = express.Router();
 
 
-
-// router.get('/getMySessions/:studentId', authMiddleware.verifyToken, studentController.getMySessions);
-
 router.get('/profile/get', authMiddleware.authenticateStudent, studentController.getProfile);
 
 router.get('/getStudent/:studentId', authMiddleware.authenticateStudent, studentController.getStudent);
@@ -22,5 +19,9 @@ router.get('/getSubjectTeachers', authMiddleware.authenticateStudent, studentCon
 
 router.get('/top-rated-teachers', authMiddleware.authenticateStudent, studentController.getTopRatedTeachers);
 
-// router.get('/getAllTeachers', authMiddleware.verifyToken, studentController.getAllTeachers);
+router.get('/my-sessions', authMiddleware.authenticateStudent, studentController.getMySessions);
+
+router.get('/teachers', authMiddleware.authenticateStudent, studentController.getAllTeachers);
+
+
 module.exports = router;
