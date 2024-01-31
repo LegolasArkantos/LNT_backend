@@ -1,3 +1,6 @@
+const Teacher = require('../Models/Teacher.model');
+
+
 const approveTeacher = async (req, res) => {
     try {
         const teacherId = req.params.teacherId;
