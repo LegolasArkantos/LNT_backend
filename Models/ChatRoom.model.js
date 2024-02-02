@@ -1,32 +1,50 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const chatRoomSchema = new Schema({
-    participants: [{
+  participants: [
+    {
+      participant: {
         type: Schema.Types.ObjectId,
-        ref: ["Teacher", "Student"],
-        required: true
-    }],
-    disabled: {
-        type: Boolean,
-        default: false
+        refPath: "role",
+        required: true,
+      },
+      role: {
+        type: String,
+        enum: ["Teacher", "Student"],
+        required: true,
+      },
     },
-    messages: [{
-        userID: { 
-            type: Schema.Types.ObjectId, 
-            ref: ["Teacher", "Student"],
-            required: true 
+  ],
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  messages: [
+    {
+      user: {
+        ID: {
+          type: Schema.Types.ObjectId,
+          refPath: "role",
+          required: true,
         },
-        message: {
-            type: String,
-            required: true
+        role: {
+          type: String,
+          enum: ["Teacher", "Student"],
+          required: true,
         },
-        timestamp: {
-            type: Date,
-            default: Date.now
-        }
-    }]
-})
+      },
+      message: {
+        type: String,
+        required: true,
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+});
 
-const ChatRoom = mongoose.model('ChatRoom', chatRoomSchema)
-module.exports = ChatRoom
+const ChatRoom = mongoose.model("ChatRoom", chatRoomSchema);
+module.exports = ChatRoom;
