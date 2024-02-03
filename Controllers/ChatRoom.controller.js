@@ -14,38 +14,12 @@ const getAllChatRooms = async (req, res) => {
     if (req.user.role === "Teacher") {
       const result = await Teacher.findById(req.user.profileID)
         .select("chatRooms")
-        .populate({
-          path: "chatRooms",
-          populate: [
-            {
-              path: "participants.participant",
-              select: "firstName lastName",
-            },
-            {
-              path: "messages.user.ID",
-              select: "firstName lastName",
-            },
-          ],
-        });
-        console.log(result)
+        .populate("chatRooms");
       res.status(200).send(result);
     } else {
       const result = await Student.findById(req.user.profileID)
         .select("chatRooms")
-        .populate({
-          path: "chatRooms",
-          populate: [
-            {
-              path: "participants.participant",
-              select: "firstName lastName",
-            },
-            {
-              path: "messages.user.ID",
-              select: "firstName lastName",
-            },
-          ],
-        });
-        console.log(result)
+        .populate("chatRooms");
       res.status(200).send(result);
     }
   } catch (error) {
@@ -110,13 +84,17 @@ const createChatRoom = async (req, res) => {
 
       for (let i = 0; i < req.body.participants.length; i++) {
         if (chat.participants[i].role == "Teacher") {
-          const teacher = await Teacher.findById(req.body.participants[i].participant);
+          const teacher = await Teacher.findById(
+            req.body.participants[i].participant
+          );
           if (teacher) {
             teacher.chatRooms.push(chat._id);
             teacher.save();
           }
         } else {
-          const student = await Student.findById(req.body.participants[i].participant);
+          const student = await Student.findById(
+            req.body.participants[i].participant
+          );
           if (student) {
             student.chatRooms.push(chat._id);
             student.save();
@@ -129,6 +107,7 @@ const createChatRoom = async (req, res) => {
     res.status(500);
   }
 };
+
 
 const deleteMessage = async (req, res) => {
   const id = req.user.profileID;
