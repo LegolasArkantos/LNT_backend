@@ -14,6 +14,10 @@ const chatRoomSchema = new Schema({
         enum: ["Teacher", "Student"],
         required: true,
       },
+      name: {
+        type: String,
+        required: true,
+      },
     },
   ],
   disabled: {
@@ -31,6 +35,10 @@ const chatRoomSchema = new Schema({
         role: {
           type: String,
           enum: ["Teacher", "Student"],
+          required: true,
+        },
+        name: {
+          type: String,
           required: true,
         },
       },
