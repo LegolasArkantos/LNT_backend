@@ -69,8 +69,8 @@ const signup = async (req, res) => {
       if (profilePicture === "") {
         res.status(404).json({ message: "Pls upload Image" });
       } else {
-        const result = cloudinary.uploader.upload(profilePicture, {
-          folder: LNT_ProfilePictures,
+        const result = await cloudinary.uploader.upload(profilePicture, {
+          upload_preset: "ml_default",
         });
 
         const profile = await Teacher.create({
@@ -94,8 +94,8 @@ const signup = async (req, res) => {
       if (profilePicture === "") {
         res.status(404).json({ message: "Pls upload Image" });
       } else {
-        const result = cloudinary.uploader.upload(profilePicture, {
-          folder: LNT_ProfilePictures,
+        const result = await cloudinary.uploader.upload(profilePicture, {
+          upload_preset: "ml_default",
         });
 
         const profile = await Student.create({

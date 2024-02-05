@@ -1,15 +1,12 @@
-const cloudinary = require('cloudinary').v2
-require('dotenv').config()
+const cloudinary = require("cloudinary").v2;
+require("dotenv").config();
 
-          
-cloudinary.config({ 
-  cloud_name: process.env.CLOUD_NAME, 
-  api_key: process.env.CLOUD_KEY, 
-  api_secret: process.env.CLOUD_KEY_SECRET 
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_KEY,
+  api_secret: process.env.CLOUD_KEY_SECRET,
 });
 
-console.log("server connected to cloud...")
-
-
+console.log("server connected to cloud...");
 
 module.exports = cloudinary;
