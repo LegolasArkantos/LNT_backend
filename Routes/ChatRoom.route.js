@@ -11,7 +11,9 @@ router.delete('/delete/:chatRoomID', authMiddleware.authenticateUser, chatRoomCo
 
 router.post('/create', authMiddleware.authenticateUser, chatRoomController.createChatRoom);
 
-// router.patch('/send-message', authMiddleware.authenticateUser, chatRoomController.sendMessage);
+router.post('/send-message', authMiddleware.authenticateUser, chatRoomController.sendMessage);
+
+router.get('/get-chat/:chatID', authMiddleware.authenticateUser, chatRoomController.getChatroom);
 
 router.patch('/delete-message', authMiddleware.authenticateUser, chatRoomController.deleteMessage);
 
