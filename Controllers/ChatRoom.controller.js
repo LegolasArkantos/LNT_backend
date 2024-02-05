@@ -31,32 +31,59 @@ const getAllChatRooms = async (req, res) => {
 const deleteChatRoom = async (req, res) => {
   const userID = req.user.profileID;
   const chatID = req.params.chatRoomID;
-
+  
   try {
-    const chat = await ChatRoom.findById(chatID);
-    if (chat === null) {
-      res.status(404).json({ error: "Invalid chat id." });
+    const chatRoom = await ChatRoom.findById(chatID);
+    
+    if (!chatRoom) {
+      res.status(404).json({ error: "Invalid chat ID" });
     } else {
-      for (const part of chat.participants) {
-        const userChatRooms = await UserProfile.findById(part).select(
-          "chatRooms"
-        );
-        if (part == userID) {
-          const newArray = userChatRooms.chatRooms.filter(
-            (item) => item != chatID
-          );
-
-          const result = await UserProfile.findByIdAndUpdate(part, {
-            $set: { chatRooms: newArray },
-          });
+      for (const partData of chatRoom.participants) {
+        
+        if (partData.role === "Student") {
+          const studentChatRooms = await Student.findById(
+            partData.participant
+          ).select("chatRooms");
+          if (partData.participant.toString() === userID) {
+            
+            studentChatRooms.chatRooms.filter(
+              (item) => item !== chatID
+            );
+            const result = await Student.findByIdAndUpdate(
+              partData.participant,
+              {
+                $set: { chatRooms: studentChatRooms },
+              }
+            );
+          } else {
+            if (!studentChatRooms.chatRooms.includes(chatID)) {
+              const result = await ChatRoom.findByIdAndDelete(chatID);
+              
+            }
+          }
         } else {
-          if (!userChatRooms.chatRooms.includes(chatID)) {
-            const result = await ChatRoom.findByIdAndDelete(chatID);
+          const teacherChatRooms = await Teacher.findById(
+            partData.participant
+          ).select("chatRooms");
+          if (partData.participant.toString() === userID) {
+            teacherChatRooms.chatRooms.filter(
+              (item) => item !== chatID
+            );
+
+            const result = await Teacher.findByIdAndUpdate(
+              partData.participant,
+              {
+                $set: { chatRooms: teacherChatRooms },
+              }
+            );
+          } else {
+            if (!teacherChatRooms.chatRooms.includes(chatID)) {
+              const result = await ChatRoom.findByIdAndDelete(chatID);
+            }
           }
         }
       }
-
-      res.status(200).json({ message: "Chat deleted successfully" });
+      res.status(200).send();
     }
   } catch (error) {
     console.log(error);
@@ -82,25 +109,38 @@ const createChatRoom = async (req, res) => {
       const chat = new ChatRoom({ participants: req.body.participants });
       await chat.save();
 
-      for (let i = 0; i < req.body.participants.length; i++) {
-        if (chat.participants[i].role == "Teacher") {
-          const teacher = await Teacher.findById(
-            req.body.participants[i].participant
-          );
-          if (teacher) {
-            teacher.chatRooms.push(chat._id);
-            teacher.save();
-          }
-        } else {
-          const student = await Student.findById(
-            req.body.participants[i].participant
-          );
-          if (student) {
-            student.chatRooms.push(chat._id);
-            student.save();
-          }
+      //for (let i = 0; i < req.body.participants.length; i++) {
+      if (req.user.role === "Student") {
+        const student = await Student.findById(req.user.profileID);
+        if (student) {
+          student.chatRooms.push(chat._id);
+          student.save();
+        }
+      } else {
+        const teacher = await Teacher.findById(req.user.profileID);
+        if (teacher) {
+          teacher.chatRooms.push(chat._id);
+          teacher.save();
         }
       }
+      // if (chat.participants[i].role == "Teacher") {
+      //   const teacher = await Teacher.findById(
+      //     req.body.participants[i].participant
+      //   );
+      //   if (teacher) {
+      //     teacher.chatRooms.push(chat._id);
+      //     teacher.save();
+      //   }
+      // } else {
+      //   const student = await Student.findById(
+      //     req.body.participants[i].participant
+      //   );
+      //   if (student) {
+      //     student.chatRooms.push(chat._id);
+      //     student.save();
+      //   }
+      // }
+      //}
     }
   } catch (error) {
     console.log(error);
@@ -108,27 +148,82 @@ const createChatRoom = async (req, res) => {
   }
 };
 
+const sendMessage = async (req, res) => {
+  const chatID = req.body.chatID;
+  const message = req.body.message;
+
+  try {
+    const chatRoom = await ChatRoom.findOne({ _id: chatID, disabled: false });
+
+    for (const part of chatRoom.participants) {
+      if (part.participant != req.user.profileID) {
+        if (part.role === "Student") {
+          const student = await Student.findById(part.participant);
+          if (!student.chatRooms.includes(chatID)) {
+            student.chatRooms.push(chatID);
+            await student.save();
+          }
+        } else {
+          const teacher = await Teacher.findById(part.participant);
+          if (!teacher.chatRooms.includes(chatID)) {
+            teacher.chatRooms.push(chatID);
+            await teacher.save();
+          }
+        }
+      }
+    }
+
+    chatRoom.messages.push(message);
+
+    await chatRoom.save();
+
+    res.status(200).json({ message: "Message Sent" });
+  } catch (error) {
+    console.log(error);
+    res.status(500);
+  }
+};
+
+const getChatroom = async (req, res) => {
+  const chatID = req.params.chatID;
+  const id = req.user.profileID;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).send("invalid id");
+  }
+  try {
+    const chatRoom = await ChatRoom.findById(chatID);
+    res.status(200).json(chatRoom);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send();
+  }
+};
 
 const deleteMessage = async (req, res) => {
   const id = req.user.profileID;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).send("invalid id");
+    return res.status(404).send("Invalid ID");
   }
 
   const chatID = req.body.chatID;
   const messageID = req.body.messageID;
 
   try {
-    await ChatRoom.updateOne(
-      { _id: chatID },
-      { $pull: { messages: { _id: messageID, userID: id } } }
+    const chatRoom = await ChatRoom.findById(chatID);
+
+    // Filter out the message with the given messageID
+    chatRoom.messages = chatRoom.messages.filter(
+      (message) => message._id.toString() !== messageID
     );
+
+    // Save the updated chatRoom
+    await chatRoom.save();
 
     res.status(200).send();
   } catch (error) {
     console.log(error);
-    res.status(500).send();
+    res.status(500).send("Internal Server Error");
   }
 };
 
@@ -137,4 +232,6 @@ module.exports = {
   deleteChatRoom,
   createChatRoom,
   deleteMessage,
+  sendMessage,
+  getChatroom,
 };
