@@ -39,6 +39,9 @@ const studentSchema = new mongoose.Schema({
     type: Boolean,
   },
   personality: [Number],
+  aboutMe: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("Student", studentSchema);
