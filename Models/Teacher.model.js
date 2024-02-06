@@ -52,6 +52,9 @@ careerCounselling: {
   type : Boolean,
   default: false,
 },
+aboutMe: {
+  type: String,
+},
 
 });
 

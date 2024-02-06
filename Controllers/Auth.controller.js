@@ -64,6 +64,7 @@ const signup = async (req, res) => {
         profilePicture,
         educationalCredentials,
         personality,
+        aboutMe,
       } = req.body;
 
       if (profilePicture === "") {
@@ -79,6 +80,7 @@ const signup = async (req, res) => {
           profilePicture: result.secure_url,
           educationalCredentials,
           personality,
+          aboutMe,
         });
         user.profileID = profile._id;
       }
@@ -89,6 +91,7 @@ const signup = async (req, res) => {
         profilePicture,
         educationalLevel,
         personality,
+        aboutMe,
       } = req.body;
 
       if (profilePicture === "") {
@@ -104,6 +107,7 @@ const signup = async (req, res) => {
           profilePicture: result.secure_url,
           educationalLevel,
           personality,
+          aboutMe,
         });
         user.profileID = profile._id;
       }
