@@ -1,25 +1,30 @@
 const mongoose = require('mongoose');
 
 const submissionSchema = new mongoose.Schema({
-
     teacher: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Teacher',
-        required: true,
+        
     },
     
     student: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Student'
+        ref: 'Student',
+        required: true,
     },
 
-    studentName: {type: String,
-        required: true,},
+    studentName: {
+        type: String,
+        required: true,
+    },
     
-    feedback:{String},
+    feedback: {
+        type: String,
+    },
 
-    
-
+    grade: {
+        type: String,
+    }
 });
 
 module.exports = mongoose.model('Submission', submissionSchema);

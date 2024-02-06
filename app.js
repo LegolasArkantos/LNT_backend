@@ -30,6 +30,7 @@ const teacherRoutes = require("./Routes/Teacher.routes");
 const sessionRoutes = require("./Routes/Session.routes");
 const reviewRoutes = require("./Routes/Review.routes");
 const chatRoutes = require("./Routes/ChatRoom.route");
+const assignmentRoutes = require("./Routes/Assignment.routes")
 
 // use routes here
 app.use("/api/auth", authRoutes);
@@ -38,6 +39,7 @@ app.use("/api/teacher", teacherRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/assignment",assignmentRoutes)
 
 const server = app.listen(PORT, () => {
   console.log("server connected and listening on port " + PORT);
