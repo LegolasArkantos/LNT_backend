@@ -10,6 +10,10 @@ router.get('/getSessionAssignments/:sessionId', authMiddleware.authenticateUser,
 
 router.post('/grade/:submissionId',  authMiddleware.authenticateTeacher,assignmentController.gradeAssignment);
 
-router.get('/submit/:assignmentId', authMiddleware.authenticateStudent, sessionController.getSpecificSession);
+router.get('/submit/:assignmentId', authMiddleware.authenticateStudent, assignmentController.submitSubmission);
+
+router.post('/create',authMiddleware.authenticateTeacher,  assignmentController.createAssignment);
+
+router.put('/update/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.updateAssignment);
 
 module.exports = router;
