@@ -65,8 +65,52 @@ const submitSubmission = async (req, res) => {
     }
 };
 
-module.exports = {
+const createAssignment = async (req, res) => {
+    try {
+        const { title, startTime, endTime, description, marks, submissions } = req.body;
 
+        const assignment = new Assignment({
+            title,
+            startTime,
+            endTime,
+            description,
+            marks,
+            submissions
+        });
+
+        await assignment.save();
+
+        res.status(201).json({ message: 'Assignment created successfully', assignment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+const updateAssignment = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+        const { title, startTime, endTime, description, marks, submissions } = req.body;
+
+        await Assignment.findByIdAndUpdate(assignmentId, {
+            title,
+            startTime,
+            endTime,
+            description,
+            marks,
+            submissions
+        });
+
+        res.status(200).json({ message: 'Assignment updated successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+module.exports = {
+    createAssignment,
+    updateAssignment,
     deleteAssignment,
     getSessionAssignments,
     gradeAssignment,
