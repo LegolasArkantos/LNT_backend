@@ -72,6 +72,7 @@ const signup = async (req, res) => {
       } else {
         const result = await cloudinary.uploader.upload(profilePicture, {
           upload_preset: "ml_default",
+          resource_type: "auto"
         });
 
         const profile = await Teacher.create({
@@ -99,6 +100,7 @@ const signup = async (req, res) => {
       } else {
         const result = await cloudinary.uploader.upload(profilePicture, {
           upload_preset: "ml_default",
+          resource_type: "auto"
         });
 
         const profile = await Student.create({
