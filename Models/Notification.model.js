@@ -1,17 +1,29 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const notificationSchema = new mongoose.Schema({
+  profileID: {
+    type: mongoose.Schema.Types.ObjectId,
+    refPath: "role",
+    required: true,
+  },
 
-    profileID: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: ["Teacher", "Student"]
+  role: {
+    type: String,
+    enum: ["Teacher", "Student"],
+    required: true,
+  },
+
+  notifications: [
+    {
+      title: String,
+      time: {
+        type: String,
+        default: new Date(Date.now()).getHours() +
+        ":" +
+        new Date(Date.now()).getMinutes(),
+      },
     },
-
-    notifications: [{
-            title: String,
-            time:Date,
-
-    }]
+  ],
 });
 
-module.exports = mongoose.model('Notification', notificationSchema);
+module.exports = mongoose.model("Notification", notificationSchema);

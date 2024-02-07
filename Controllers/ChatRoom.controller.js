@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Teacher = require("../Models/Teacher.model");
 const Student = require("../Models/Student.model");
 const ChatRoom = require("../Models/ChatRoom.model");
+const Notifications = require("../Models/Notification.model");
 
 const getAllChatRooms = async (req, res) => {
   const userID = req.user.profileID;
@@ -159,12 +160,28 @@ const sendMessage = async (req, res) => {
       if (part.participant != req.user.profileID) {
         if (part.role === "Student") {
           const student = await Student.findById(part.participant);
+          const notification = await Notifications.findById(student.notificationsID);
+          if (!notification) {
+            res.status(404).json({messg: "Notifications not found!"});
+          }
+          else {
+            notification.notifications.push({title: "Message received from: " + message.user.name });
+            await notification.save();
+          }
           if (!student.chatRooms.includes(chatID)) {
             student.chatRooms.push(chatID);
             await student.save();
           }
         } else {
           const teacher = await Teacher.findById(part.participant);
+          const notification = await Notifications.findById(teacher.notificationsID);
+          if (!notification) {
+            res.status(404).json({messg: "Notifications not found!"});
+          }
+          else {
+            notification.notifications.push({title: "Message received from: " + message.user.name });
+            await notification.save();
+          }
           if (!teacher.chatRooms.includes(chatID)) {
             teacher.chatRooms.push(chatID);
             await teacher.save();

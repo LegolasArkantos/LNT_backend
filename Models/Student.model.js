@@ -11,10 +11,16 @@ const studentSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
+    required: true,
   },
   educationalLevel: {
     type: String,
     required: true,
+  },
+  notificationsID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Notification",
+    require: true,
   },
   // subjectsOfInterest: [String],
   teachers: [
