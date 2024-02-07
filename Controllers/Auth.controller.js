@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const User = require("../Models/User.model");
 const Teacher = require("../Models/Teacher.model");
 const Student = require("../Models/Student.model");
+const Notifications = require("../Models/Notification.model");
 const cloudinary = require("../Configuration/Cloudinary");
 
 // Generate JWT Token
@@ -72,7 +73,7 @@ const signup = async (req, res) => {
       } else {
         const result = await cloudinary.uploader.upload(profilePicture, {
           upload_preset: "ml_default",
-          resource_type: "auto"
+          resource_type: "auto",
         });
 
         const profile = await Teacher.create({
@@ -84,6 +85,14 @@ const signup = async (req, res) => {
           aboutMe,
         });
         user.profileID = profile._id;
+
+        notifications = new Notifications({
+          profileID: profile._id,
+          role: "Teacher",
+        });
+        profile.notificationsID = notifications._id;
+        await notifications.save();
+        await profile.save();
       }
     } else if (role === "Student") {
       const {
@@ -100,7 +109,7 @@ const signup = async (req, res) => {
       } else {
         const result = await cloudinary.uploader.upload(profilePicture, {
           upload_preset: "ml_default",
-          resource_type: "auto"
+          resource_type: "auto",
         });
 
         const profile = await Student.create({
@@ -112,6 +121,15 @@ const signup = async (req, res) => {
           aboutMe,
         });
         user.profileID = profile._id;
+
+        notifications = new Notifications({
+          profileID: profile._id,
+          role: "Student",
+        });
+
+        profile.notificationsID = notifications._id;
+        await notifications.save();
+        await profile.save();
       }
     }
 

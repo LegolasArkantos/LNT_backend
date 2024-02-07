@@ -21,6 +21,5 @@
     "socket.io": "^4.7.4"
   },
   "devDependencies": {
-    "prettier": "3.2.5"
   }
 }
