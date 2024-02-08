@@ -110,38 +110,38 @@ const createChatRoom = async (req, res) => {
       const chat = new ChatRoom({ participants: req.body.participants });
       await chat.save();
 
-      //for (let i = 0; i < req.body.participants.length; i++) {
-      if (req.user.role === "Student") {
-        const student = await Student.findById(req.user.profileID);
-        if (student) {
-          student.chatRooms.push(chat._id);
-          student.save();
-        }
-      } else {
-        const teacher = await Teacher.findById(req.user.profileID);
-        if (teacher) {
-          teacher.chatRooms.push(chat._id);
-          teacher.save();
-        }
-      }
-      // if (chat.participants[i].role == "Teacher") {
-      //   const teacher = await Teacher.findById(
-      //     req.body.participants[i].participant
-      //   );
-      //   if (teacher) {
-      //     teacher.chatRooms.push(chat._id);
-      //     teacher.save();
-      //   }
-      // } else {
-      //   const student = await Student.findById(
-      //     req.body.participants[i].participant
-      //   );
+      for (let i = 0; i < chat.participants.length; i++) {
+      // if (req.user.role === "Student") {
+      //   const student = await Student.findById(req.user.profileID);
       //   if (student) {
       //     student.chatRooms.push(chat._id);
       //     student.save();
       //   }
+      // } else {
+      //   const teacher = await Teacher.findById(req.user.profileID);
+      //   if (teacher) {
+      //     teacher.chatRooms.push(chat._id);
+      //     teacher.save();
+      //   }
       // }
-      //}
+      if (chat.participants[i].role == "Teacher") {
+        const teacher = await Teacher.findById(
+          chat.participants[i].participant
+        );
+        if (teacher) {
+          teacher.chatRooms.push(chat._id);
+          await teacher.save();
+        }
+      } else {
+        const student = await Student.findById(
+          chat.participants[i].participant
+        );
+        if (student) {
+          student.chatRooms.push(chat._id);
+          await student.save();
+        }
+      }
+      }
     }
   } catch (error) {
     console.log(error);
@@ -161,11 +161,14 @@ const sendMessage = async (req, res) => {
         if (part.role === "Student") {
           const student = await Student.findById(part.participant);
           const notification = await Notifications.findById(student.notificationsID);
+          
           if (!notification) {
+            console.log("hello1")
             res.status(404).json({messg: "Notifications not found!"});
           }
           else {
-            notification.notifications.push({title: "Message received from: " + message.user.name });
+            console.log("hello2")
+            notification.notifications.push({title: "Message received from: " + message.user.name, timestamp: message.timestamp });
             await notification.save();
           }
           if (!student.chatRooms.includes(chatID)) {
@@ -176,10 +179,12 @@ const sendMessage = async (req, res) => {
           const teacher = await Teacher.findById(part.participant);
           const notification = await Notifications.findById(teacher.notificationsID);
           if (!notification) {
+            console.log("hello3")
             res.status(404).json({messg: "Notifications not found!"});
           }
           else {
-            notification.notifications.push({title: "Message received from: " + message.user.name });
+            console.log("hello4")
+            notification.notifications.push({title: "Message received from: " + message.user.name, timestamp: message.timestamp });
             await notification.save();
           }
           if (!teacher.chatRooms.includes(chatID)) {
@@ -190,6 +195,7 @@ const sendMessage = async (req, res) => {
       }
     }
 
+    console.log("hello chatroom")
     chatRoom.messages.push(message);
 
     await chatRoom.save();
