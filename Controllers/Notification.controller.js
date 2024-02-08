@@ -29,9 +29,9 @@ const deleteNotification = async (req, res) => {
     const notificationBox = await Notification.findOne({
       profileID: userID,
     })
-
-    notificationBox.notifications.filter((notification) => notification._id != notiID);
+    notificationBox.notifications = notificationBox.notifications.filter((notification) => notification._id.toString() !== notiID);
     await notificationBox.save();
+    res.status(200).send();
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
