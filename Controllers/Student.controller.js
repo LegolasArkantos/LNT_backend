@@ -1,4 +1,4 @@
-//const Session = require('../models/session');
+const Session = require('../Models/Session.model');
 const Teacher = require('../Models/Teacher.model');
 // const User = require('../Models/User.model');
 const Student = require('../Models/Student.model');
@@ -161,14 +161,7 @@ const getMySessions = async (req, res) => {
         const studentId  = req.user.profileID;
 
         // Find sessions for the student and populate the 'students' field
-        const sessions = await Session.find({ students: studentId }).populate({
-            path: 'students',
-            select: 'educationalLevel -_id', // Select educationalLevel and exclude _id
-            populate: {
-                path: 'user',
-                select: 'firstName lastName -_id' // Select firstName and lastName, exclude _id
-            }
-        }).select('-_id -__v'); // Exclude _id and __v fields from sessions
+        const sessions = await Session.find({ students: studentId }).populate('students');
 
         if (!sessions || sessions.length === 0) {
             return res.status(404).json({ message: 'No sessions found for this student' });
