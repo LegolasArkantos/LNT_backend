@@ -11,7 +11,7 @@ const teacherSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    
+    required: true,
   },
   educationalCredentials: {
     type: [String],
@@ -20,6 +20,11 @@ const teacherSchema = new mongoose.Schema({
   subjectsTaught: {
     type: [String],
     required: true
+  },
+  notificationsID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Notification",
+    require: true,
   },
   rating: {
     type: String
