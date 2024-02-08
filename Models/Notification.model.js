@@ -16,11 +16,9 @@ const notificationSchema = new mongoose.Schema({
   notifications: [
     {
       title: String,
-      time: {
+      timestamp: {
         type: String,
-        default: new Date(Date.now()).getHours() +
-        ":" +
-        new Date(Date.now()).getMinutes(),
+        required: true
       },
     },
   ],
