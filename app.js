@@ -13,6 +13,7 @@ const PORT = process.env.PORT;
 
 //middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
@@ -32,6 +33,8 @@ const reviewRoutes = require("./Routes/Review.routes");
 const chatRoutes = require("./Routes/ChatRoom.route");
 const assignmentRoutes = require("./Routes/Assignment.routes")
 const notificationRoutes = require('./Routes/Notification.routes');
+const aiRoutes = require("./Routes/aiRoutes");
+
 
 // use routes here
 app.use("/api/auth", authRoutes);
@@ -42,6 +45,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/assignment",assignmentRoutes);
 app.use("/api/notification", notificationRoutes);
+app.use("/api/ai", aiRoutes);
+
 
 const server = app.listen(PORT, () => {
   console.log("server connected and listening on port " + PORT);
