@@ -52,9 +52,7 @@ const chatRoomSchema = new Schema({
       },
       timestamp: {
         type: String,
-        default: new Date(Date.now()).getHours() +
-        ":" +
-        new Date(Date.now()).getMinutes(),
+        required: true
       },
     },
   ],
