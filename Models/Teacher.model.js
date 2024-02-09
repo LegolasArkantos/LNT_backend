@@ -13,8 +13,8 @@ const teacherSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  educationalCredentials: {
-    type: [String],
+  educationalCredential: {
+    type: String,
     required: true,
   },
   subjectsTaught: {
