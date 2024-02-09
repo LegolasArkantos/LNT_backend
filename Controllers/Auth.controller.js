@@ -63,7 +63,7 @@ const signup = async (req, res) => {
         firstName,
         lastName,
         profilePicture,
-        educationalCredentials,
+        educationalCredential,
         personality,
         aboutMe,
       } = req.body;
@@ -80,7 +80,7 @@ const signup = async (req, res) => {
           firstName,
           lastName,
           profilePicture: result.secure_url,
-          educationalCredentials,
+          educationalCredential,
           personality,
           aboutMe,
         });
