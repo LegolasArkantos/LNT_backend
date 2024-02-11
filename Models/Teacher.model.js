@@ -44,6 +44,10 @@ chatRooms: [{
   type: mongoose.Schema.Types.ObjectId,
   ref: 'ChatRoom'
 }],
+polls: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Poll'
+}],
 
 
 isApproved: {

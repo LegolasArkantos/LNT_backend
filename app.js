@@ -34,7 +34,7 @@ const chatRoutes = require("./Routes/ChatRoom.route");
 const assignmentRoutes = require("./Routes/Assignment.routes")
 const notificationRoutes = require('./Routes/Notification.routes');
 const aiRoutes = require("./Routes/aiRoutes");
-
+const pollRoutes =require("./Routes/Poll.routes");
 
 // use routes here
 app.use("/api/auth", authRoutes);
@@ -46,6 +46,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/assignment",assignmentRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/poll", pollRoutes);
 
 
 const server = app.listen(PORT, () => {
