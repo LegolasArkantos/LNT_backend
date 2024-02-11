@@ -12,7 +12,7 @@ router.post('/grade/:submissionId',  authMiddleware.authenticateTeacher,assignme
 
 router.get('/submit/:assignmentId', authMiddleware.authenticateStudent, assignmentController.submitSubmission);
 
-router.post('/create',authMiddleware.authenticateTeacher,  assignmentController.createAssignment);
+router.post('/create/:sessionId',authMiddleware.authenticateTeacher,  assignmentController.createAssignment);
 
 router.put('/update/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.updateAssignment);
 

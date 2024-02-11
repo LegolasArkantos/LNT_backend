@@ -66,7 +66,7 @@ const getAvailableSessions = async (req, res) => {
 
 const joinSession = async (req, res) => {
     try {
-      const sessionId = req.params.sessionId;
+      const {sessionId} = req.params;
       const studentId  = req.user.profileID;
   
       // Find the session
