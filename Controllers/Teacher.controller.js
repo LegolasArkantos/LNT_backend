@@ -153,10 +153,80 @@ const getMyStudents = async (req, res) => {
     }
 };
 
+const getStudent = async (req, res) => {
+  try {
+      const { studentId } = req.params;
+
+      // Find the student and populate 'sessions' and 'teachers' fields with relevant details
+      const student = await Student.findById(studentId)
+          // .populate({
+          //     path: 'sessions',
+          //     select: ['startTime', 'endTime', 'status', 'paymentStatus', 'teacherName','subject', 'sessionPrice']
+          // })
+          // .populate({
+          //     path: 'teachers',
+          //     select: ['educationalCredentials', 'subjectsTaught', 'availableTimeSlots'],
+          //     populate: {
+          //         path: 'user',
+          //         select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
+          //     }
+          // })
+          // .populate({
+          //     path: 'user',
+          //     select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
+          // })
+      
+      if (!student) {
+          return res.status(404).json({ message: 'Student not found' });
+      }
+
+      res.status(200).json(student);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+const getTeacher = async (req, res) => {
+  try {
+      const { teacherId } = req.params;
+
+      // Find the student and populate 'sessions' and 'teachers' fields with relevant details
+      const teacher = await Teacher.findById(teacherId)
+          // .populate({
+          //     path: 'sessions',
+          //     select: ['startTime', 'endTime', 'status', 'paymentStatus', 'teacherName','subject', 'sessionPrice']
+          // })
+          // .populate({
+          //     path: 'teachers',
+          //     select: ['educationalCredentials', 'subjectsTaught', 'availableTimeSlots'],
+          //     populate: {
+          //         path: 'user',
+          //         select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
+          //     }
+          // })
+          // .populate({
+          //     path: 'user',
+          //     select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
+          // })
+      
+      if (!teacher) {
+          return res.status(404).json({ message: 'Teacher not found' });
+      }
+
+      res.status(200).json(teacher);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 
 module.exports = {
     getProfile,
     getMyStudents,
     updateProfile,
-    getSpecificSession
+    getSpecificSession,
+    getStudent,
+    getTeacher
 };
