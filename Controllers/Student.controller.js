@@ -58,6 +58,40 @@ const getStudent = async (req, res) => {
     }
 };
 
+const getTeacher = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+
+        // Find the student and populate 'sessions' and 'teachers' fields with relevant details
+        const teacher = await Teacher.findById(teacherId)
+            // .populate({
+            //     path: 'sessions',
+            //     select: ['startTime', 'endTime', 'status', 'paymentStatus', 'teacherName','subject', 'sessionPrice']
+            // })
+            // .populate({
+            //     path: 'teachers',
+            //     select: ['educationalCredentials', 'subjectsTaught', 'availableTimeSlots'],
+            //     populate: {
+            //         path: 'user',
+            //         select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
+            //     }
+            // })
+            // .populate({
+            //     path: 'user',
+            //     select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
+            // })
+        
+        if (!teacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+
+        res.status(200).json(teacher);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
 const getTopRatedTeachers = async (req, res) => {
     try {
         const teachers = await Teacher.find({ rating: { $gte: 4 } });
@@ -204,5 +238,6 @@ module.exports = {
     getSubjectTeachers,
     getTopRatedTeachers,
     getMySessions,
-    getAllTeachers
+    getAllTeachers,
+    getTeacher
 };
