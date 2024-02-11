@@ -9,6 +9,8 @@ router.get('/profile/get', authMiddleware.authenticateStudent, studentController
 
 router.get('/getStudent/:studentId', authMiddleware.authenticateStudent, studentController.getStudent);
 
+router.get('/getTeacher/:teacherId', authMiddleware.authenticateStudent, studentController.getTeacher);
+
 router.get('/getAllStudents', authMiddleware.authenticateStudent, studentController.getAllStudents);
 
 router.patch('/updateProfile', authMiddleware.authenticateStudent, studentController.updateProfile);
