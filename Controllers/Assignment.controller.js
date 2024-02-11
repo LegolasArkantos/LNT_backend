@@ -1,5 +1,6 @@
 const Assignment = require('../Models/Assignment.model');
 const Submission = require('../Models/Submission.model');
+const Session = require('../Models/Session.model')
 
 const deleteAssignment = async (req, res) => {
     try {
@@ -18,9 +19,12 @@ const getSessionAssignments = async (req, res) => {
     try {
         const { sessionId } = req.params;
 
-        const assignments = await Assignment.find({ session: sessionId });
+        const session = await Session.findById(sessionId).populate('assignment');
+        if (!session) {
+            return res.status(404).json({ message: 'Session not found' });
+        }
 
-        res.status(200).json({ assignments });
+        res.status(200).json({ assignments: session.assignment });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -68,7 +72,7 @@ const submitSubmission = async (req, res) => {
 const createAssignment = async (req, res) => {
     try {
         const { title, startTime, endTime, description, marks, submissions } = req.body;
-
+        const { sessionId } = req.params; 
         const assignment = new Assignment({
             title,
             startTime,
@@ -80,12 +84,22 @@ const createAssignment = async (req, res) => {
 
         await assignment.save();
 
+        // Find the session and update its assignments array
+        const session = await Session.findById(sessionId);
+        if (!session) {
+            return res.status(404).json({ message: 'Session not found' });
+        }
+
+        session.assignment.push(assignment._id);
+        await session.save();
+
         res.status(201).json({ message: 'Assignment created successfully', assignment });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
 
 const updateAssignment = async (req, res) => {
     try {

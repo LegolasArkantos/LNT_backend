@@ -39,10 +39,10 @@ const sessionSchema = new mongoose.Schema({
     sessionPrice: {type: String,
         required: true,},
 
-    assignment: {
+    assignment: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Assignment',
-    },
+    }],
 
 });
 
