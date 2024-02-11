@@ -52,7 +52,6 @@ const getAllPolls = async (req, res) => {
         if (!polls) {
             return res.status(404).json({mssg: "no polls found"});
         }
-        console.log(polls);
         res.status(200).json(polls);
     }
     catch (error) {
