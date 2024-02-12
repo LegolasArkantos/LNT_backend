@@ -1,7 +1,7 @@
 const Session = require('../Models/Session.model');
-const User = require('../Models/User.model');
 const Student = require('../Models/Student.model');
 const Teacher = require('../Models/Teacher.model')
+const mongoose = require("mongoose");
 
 const createSession = async (req, res) => {
   try {
@@ -173,6 +173,37 @@ const joinSession = async (req, res) => {
     }
 };
 
+const searchSessionbyQuery = async (req, res) => {
+  const profileID = req.user.profileID
+  const searchValue = req.query.value;
+  const matchedSessions = [];
+
+  if (!mongoose.Types.ObjectId.isValid(profileID)) {
+    return res.status(404).json({ error: "invalid" });
+  }
+
+  try {
+    const sessions = await Session.find({ subject: { $regex: searchValue, $options: 'i' } }).populate('teacher students assignment');
+    const student = await Student.findById(profileID);
+    for (const session of sessions) {
+      const teacher = session.teacher;
+      var count = 0;
+      for (var i = 0; i < teacher.personality.length; i++) {
+        if (student.personality[i] === teacher.personality[i]) {
+          count++;
+        }
+      }
+      matchedSessions.push({count, session});
+    }
+    matchedSessions.sort((a, b) => b.count - a.count);
+
+    res.status(200).json(matchedSessions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 
   
 module.exports = {
@@ -181,4 +212,5 @@ module.exports = {
     joinSession,
     updateSession,
     getSpecificSession,
+    searchSessionbyQuery
 };

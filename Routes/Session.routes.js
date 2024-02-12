@@ -14,5 +14,7 @@ router.put('/updateSession/:sessionId', authMiddleware.authenticateTeacher, sess
 
 router.get('/session/:sessionId', authMiddleware.authenticateUser, sessionController.getSpecificSession);
 
+router.get('/search', authMiddleware.authenticateStudent, sessionController.searchSessionbyQuery);
+
 
 module.exports = router;
