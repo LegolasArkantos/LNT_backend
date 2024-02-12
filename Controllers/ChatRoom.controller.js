@@ -142,6 +142,10 @@ const createChatRoom = async (req, res) => {
         }
       }
       }
+      res.status(200).json({mssg: "Chat created successfully!"});
+    }
+    else {
+      res.status(200).json({mssg: "Chat already exists"});
     }
   } catch (error) {
     console.log(error);
