@@ -39,4 +39,3 @@ const assignmentSchema = new mongoose.Schema({
 
 module.exports = mongoose.model('Assignment', assignmentSchema);
 
-module.exports = mongoose.model('Assignment', assignmentSchema);
