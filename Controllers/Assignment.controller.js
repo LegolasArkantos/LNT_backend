@@ -71,7 +71,7 @@ const submitSubmission = async (req, res) => {
 
 const createAssignment = async (req, res) => {
     try {
-        const { title, startTime, endTime, description, marks, submissions } = req.body;
+        const { title, startTime, endTime, description, marks,  } = req.body;
         const { sessionId } = req.params; 
         const assignment = new Assignment({
             title,
@@ -79,7 +79,7 @@ const createAssignment = async (req, res) => {
             endTime,
             description,
             marks,
-            submissions
+            submissions: [],
         });
 
         await assignment.save();
