@@ -27,7 +27,8 @@ const teacherSchema = new mongoose.Schema({
     require: true,
   },
   rating: {
-    type: String
+    type: String,
+    default: "0"
   },
   availableTimeSlots: {
     type: [String],
