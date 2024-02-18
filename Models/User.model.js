@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['Teacher', 'Student'],
+        enum: ['Teacher', 'Student', 'Admin'],
         required: true
     },
     profileID: {

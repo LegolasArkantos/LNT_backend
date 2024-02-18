@@ -41,9 +41,6 @@ const studentSchema = new mongoose.Schema({
       ref: "ChatRoom",
     },
   ],
-  inReview: {
-    type: Boolean,
-  },
   personality: [Number],
   aboutMe: {
     type: String,
