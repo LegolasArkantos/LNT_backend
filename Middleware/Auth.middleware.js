@@ -72,6 +72,7 @@ const authenticateAdmin = (req, res, next) => {
         if (user.role !== 'Admin') return res.status(403).json({ message: 'Unauthorized' });
 
         req.user = user;
+        
         next();
     });
 };

@@ -94,7 +94,7 @@ const getTeacher = async (req, res) => {
 
 const getTopRatedTeachers = async (req, res) => {
     try {
-        const teachers = await Teacher.find({ rating: { $gte: 4 } });
+        const teachers = await Teacher.find({ rating: { $gte: 4 }, isApproved: true });
 
         if (!teachers) {
             return res.status(404).json({message: 'No Teachers Found'});
