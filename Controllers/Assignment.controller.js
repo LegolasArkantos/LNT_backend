@@ -1,6 +1,8 @@
 const Assignment = require('../Models/Assignment.model');
 const Submission = require('../Models/Submission.model');
-const Session = require('../Models/Session.model')
+const Session = require('../Models/Session.model');
+const cloudinary = require("../Configuration/Cloudinary");
+
 
 const deleteAssignment = async (req, res) => {
     try {
@@ -122,11 +124,47 @@ const updateAssignment = async (req, res) => {
     }
 };
 
+const getAssignment = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+
+        const assignment = await Assignment.findById(assignmentId)
+        if (!assignment) {
+            return res.status(404).json({ message: 'Assignment not found' });
+        }
+
+        res.status(200).json({ assignment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+const uploadFile = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+                const base64Data = req.body.file;
+
+        // Upload file to Cloudinary
+        const result = await cloudinary.uploader.upload(base64Data, { resource_type: 'raw' });
+
+        // Update assignment model with the secure URL from Cloudinary
+        const assignment = await Assignment.findByIdAndUpdate(assignmentId, { file: result.secure_url }, { new: true });
+
+        res.json({ assignment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 module.exports = {
     createAssignment,
     updateAssignment,
     deleteAssignment,
     getSessionAssignments,
     gradeAssignment,
-    submitSubmission
+    submitSubmission,
+    getAssignment,
+    uploadFile
 };

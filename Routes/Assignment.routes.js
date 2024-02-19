@@ -1,6 +1,7 @@
 const express = require('express');
 const assignmentController = require('../Controllers/Assignment.controller');
 const authMiddleware = require('../Middleware/Auth.middleware')
+const cors = require('cors');
 
 const router = express.Router();
 
@@ -15,5 +16,11 @@ router.get('/submit/:assignmentId', authMiddleware.authenticateStudent, assignme
 router.post('/create/:sessionId',authMiddleware.authenticateTeacher,  assignmentController.createAssignment);
 
 router.put('/update/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.updateAssignment);
+
+router.get('/getAssignment/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.getAssignment);
+
+router.post('/uploadFile/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.uploadFile);
+
+
 
 module.exports = router;
