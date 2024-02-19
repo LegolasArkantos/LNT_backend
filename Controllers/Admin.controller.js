@@ -1,10 +1,9 @@
 const Teacher = require('../Models/Teacher.model');
-
+const User = require('../Models/User.model');
 
 const approveTeacher = async (req, res) => {
     try {
         const teacherId = req.params.teacherId;
-
         // Fetch the teacher from the database
         const teacher = await Teacher.findById(teacherId);
 
@@ -40,8 +39,9 @@ const unapproveTeacher = async (req, res) => {
 
         // Remove the teacher record from the database
         const deletedTeacher = await Teacher.deleteOne({ _id: teacherId });
+        const result = await User.deleteOne({profileID: teacherId});
 
-        if (deletedTeacher.deletedCount === 0) {
+        if (deletedTeacher.deletedCount === 0 || result.deletedCount === 0) {
             return res.status(404).json({ message: 'Teacher not found' });
         }
 
