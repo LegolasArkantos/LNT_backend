@@ -151,6 +151,13 @@ const login = async (req, res) => {
       return res.status(404).json({ message: "email does not exist" });
     }
 
+    if (user.role === "Teacher") {
+      const teacher = await Teacher.findById(user.profileID);
+      if (!teacher.isApproved) {
+        return res.status(403).json({ message: "Your account is awaiting approval" });
+      }
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
