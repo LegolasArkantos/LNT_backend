@@ -19,7 +19,7 @@ router.put('/update/:assignmentId', authMiddleware.authenticateTeacher,  assignm
 
 router.get('/getAssignment/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.getAssignment);
 
-router.post('/uploadFile/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.uploadFile);
+router.post('/uploadFiles/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.uploadFile);
 
 
 
