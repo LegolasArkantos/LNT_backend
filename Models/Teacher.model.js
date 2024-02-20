@@ -50,6 +50,10 @@ polls: [{
   ref: 'Poll'
 }],
 
+notes: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Note'
+}],
 
 isApproved: {
   type: Boolean,

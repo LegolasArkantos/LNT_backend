@@ -36,6 +36,7 @@ const notificationRoutes = require('./Routes/Notification.routes');
 const aiRoutes = require("./Routes/aiRoutes");
 const pollRoutes = require("./Routes/Poll.routes");
 const adminRoutes = require("./Routes/Admin.routes");
+const noteRoutes = require("./Routes/Note.routes");
 
 // use routes here
 app.use("/api/auth", authRoutes);
@@ -49,6 +50,7 @@ app.use("/api/notification", notificationRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/poll", pollRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/note", noteRoutes);
 
 const server = app.listen(PORT, () => {
   console.log("server connected and listening on port " + PORT);
