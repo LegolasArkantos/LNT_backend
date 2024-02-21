@@ -143,19 +143,23 @@ const getAssignment = async (req, res) => {
 const uploadFile = async (req, res) => {
     try {
         const { assignmentId } = req.params;
-                const base64Data = req.body.file;
-
-        // Upload file to Cloudinary
-        const result = await cloudinary.uploader.upload(base64Data, { resource_type: 'raw' });
-
-        // Update assignment model with the secure URL from Cloudinary
-        const assignment = await Assignment.findByIdAndUpdate(assignmentId, { file: result.secure_url }, { new: true });
-
-        res.json({ assignment });
-    } catch (error) {
+        const { files } = req.body;
+    
+        // Find the assignment by ID
+        const assignment = await Assignment.findById(assignmentId);
+        if (!assignment) {
+          return res.status(404).json({ message: 'Assignment not found' });
+        }
+    
+        // Update the assignment with file URLs and names
+        assignment.files.push(...files);
+    await assignment.save();
+    
+        res.json({ message: 'Files saved to assignment successfully' });
+      } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
+        res.status(500).json({ message: 'Server Error' });
+      }
 };
 
 module.exports = {

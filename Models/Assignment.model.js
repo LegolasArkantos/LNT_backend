@@ -21,9 +21,18 @@ const assignmentSchema = new mongoose.Schema({
         required: true,
     },
 
-    file: {
-        type: String,
-    },
+    files: [
+        {
+            fileName: {
+                type: String,
+                required: true,
+            },
+            fileUrl: {
+                type: String,
+                required: true,
+            }
+        }
+    ],
 
     marks: {
         type: String,
