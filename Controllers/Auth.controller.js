@@ -66,6 +66,7 @@ const signup = async (req, res) => {
         educationalCredential,
         personality,
         aboutMe,
+        credentialFiles,
       } = req.body;
 
       if (profilePicture === "") {
@@ -83,6 +84,7 @@ const signup = async (req, res) => {
           educationalCredential,
           personality,
           aboutMe,
+          credentialFiles,
         });
         user.profileID = profile._id;
 

@@ -66,9 +66,23 @@ careerCounselling: {
   type : Boolean,
   default: false,
 },
+
 aboutMe: {
   type: String,
 },
+
+credentialFiles: [
+  {
+      fileName: {
+          type: String,
+          required: true,
+      },
+      fileUrl: {
+          type: String,
+          required: true,
+      }
+  }
+],
 
 });
 
