@@ -76,6 +76,30 @@ io.on("connection", (socket) => {
     console.log(data);
   })
 
+  socket.on("join:video-call", (data) => {
+    const {roomID} = data;
+    console.log(roomID);
+    io.to(roomID).emit("user:joined", {id: socket.id});
+    socket.join(roomID);
+  })
+
+  socket.on("user:call", (data) => {
+    console.log("whatup")
+     io.to(data.to).emit("incoming:call", {from: socket.id, offer: data.offer})
+  })
+
+  socket.on("call:accepted", (data) => {
+    io.to(data.to).emit("call:accepted", {from: socket.id, ans: data.ans})
+  })
+
+  socket.on("peer:nego:needed", (data) => {
+    io.to(data.to).emit("peer:nego:needed", {from: socket.id, offer: data.offer})
+  })
+
+  socket.on("peer:nego:done", (data) => {
+    io.to(data.to).emit("peer:nego:final", {from: socket.id, ans: data.ans})
+  })
+
   socket.on("disconnect", () => {
     console.log("User Disconnected ", socket.id);
   });
