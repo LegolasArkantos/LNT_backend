@@ -2,7 +2,7 @@ const Assignment = require('../Models/Assignment.model');
 const Submission = require('../Models/Submission.model');
 const Session = require('../Models/Session.model');
 const cloudinary = require("../Configuration/Cloudinary");
-
+const Notifications = require('../Models/Notification.model');
 
 const deleteAssignment = async (req, res) => {
     try {
@@ -87,12 +87,17 @@ const createAssignment = async (req, res) => {
         await assignment.save();
 
         // Find the session and update its assignments array
-        const session = await Session.findById(sessionId);
+        const session = await Session.findById(sessionId).populate('students');
         if (!session) {
             return res.status(404).json({ message: 'Session not found' });
         }
 
         session.assignment.push(assignment._id);
+        for (const student of session.students) {
+            const notification = await Notifications.findById(student.notificationsID);
+            notification.notifications.push({title: session.subject + ": New Assignment", timestamp: new Date(Date.now()).getHours() + ":" + new Date(Date.now()).getMinutes()});
+            await notification.save();
+        }
         await session.save();
 
         res.status(201).json({ message: 'Assignment created successfully', assignment });
