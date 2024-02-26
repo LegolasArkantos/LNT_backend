@@ -55,6 +55,7 @@ const getMyStudents = async (req, res) => {
           paymentStatus:session.paymentStatus,
           status:session.status,
           sessionPrice:session.sessionPrice,
+          teacherName: session.teacherName,
           students: [],
         };
   

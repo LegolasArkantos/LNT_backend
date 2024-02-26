@@ -10,7 +10,7 @@ const sessionSchema = new mongoose.Schema({
 
     teacherName:{type: String,
         required: true,
-        },
+    },
 
     students: [{
         type: mongoose.Schema.Types.ObjectId,
