@@ -3,6 +3,7 @@ const Submission = require('../Models/Submission.model');
 const Session = require('../Models/Session.model');
 const cloudinary = require("../Configuration/Cloudinary");
 const Notifications = require('../Models/Notification.model');
+const Student = require("../Models/Student.model");
 
 const deleteAssignment = async (req, res) => {
     try {
@@ -51,13 +52,21 @@ const gradeAssignment = async (req, res) => {
 const submitSubmission = async (req, res) => {
     try {
         const { assignmentId } = req.params;
-        const { teacherId, studentId, studentName, feedback } = req.body;
+        const { files } = req.body;
+        const studentId = req.user.profileID;
+
+        await Submission.findOneAndDelete({ student: studentId, assignment: assignmentId });
+
+        const student = await Student.findById(studentId);
+        const { firstName, lastName } = student;
+        const studentName = `${firstName} ${lastName}`;
 
         const submission = new Submission({
-            teacher: teacherId,
             student: studentId,
             studentName,
-            feedback
+            files,
+            assignment: assignmentId ,
+            grade: -1
         });
 
         await submission.save();
@@ -70,6 +79,12 @@ const submitSubmission = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+
+
+
+
+
 
 const createAssignment = async (req, res) => {
     try {
@@ -111,7 +126,7 @@ const createAssignment = async (req, res) => {
 const updateAssignment = async (req, res) => {
     try {
         const { assignmentId } = req.params;
-        const { title, startTime, endTime, description, marks, submissions } = req.body;
+        const { title, startTime, endTime, description, marks } = req.body;
 
         await Assignment.findByIdAndUpdate(assignmentId, {
             title,
@@ -119,7 +134,7 @@ const updateAssignment = async (req, res) => {
             endTime,
             description,
             marks,
-            submissions
+            
         });
 
         res.status(200).json({ message: 'Assignment updated successfully' });
@@ -167,6 +182,58 @@ const uploadFile = async (req, res) => {
       }
 };
 
+const getSubmission = async (req, res) => {
+    try {
+        const studentId = req.user.profileID; 
+
+        const { assignmentId } = req.params;
+
+        const submission = await Submission.findOne({ student: studentId, assignment: assignmentId });
+
+        if (!submission) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+
+        const files = submission.files;
+
+        res.status(200).json({ files });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+
+}
+
+
+const getSubmissions = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+
+        const assignment = await Assignment.findById(assignmentId);
+
+        if (!assignment) {
+            return res.status(404).json({ message: 'Assignment not found' });
+        }
+
+        await assignment.populate('submissions')
+
+        const submissions = assignment.submissions.map(submission => ({
+            _id: submission._id,
+            studentName: submission.studentName,
+            files: submission.files,
+            grade: submission.grade
+        }));
+
+        res.status(200).json({ submissions });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+
+}
+
 module.exports = {
     createAssignment,
     updateAssignment,
@@ -175,5 +242,8 @@ module.exports = {
     gradeAssignment,
     submitSubmission,
     getAssignment,
-    uploadFile
+    uploadFile,
+    getSubmission,
+    getSubmissions,
+    
 };
