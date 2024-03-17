@@ -37,6 +37,8 @@ const aiRoutes = require("./Routes/aiRoutes");
 const pollRoutes = require("./Routes/Poll.routes");
 const adminRoutes = require("./Routes/Admin.routes");
 const noteRoutes = require("./Routes/Note.routes");
+const CareerRoutes = require("./Routes/Career.routes");
+
 
 // use routes here
 app.use("/api/auth", authRoutes);
@@ -51,6 +53,8 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/poll", pollRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/note", noteRoutes);
+app.use("/api/career", CareerRoutes);
+
 
 const server = app.listen(PORT, () => {
   console.log("server connected and listening on port " + PORT);
