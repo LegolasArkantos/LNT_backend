@@ -195,8 +195,10 @@ const getSubmission = async (req, res) => {
         }
 
         const files = submission.files;
+        const feedback=submission.feedback;
+        const grade=submission.grade;
 
-        res.status(200).json({ files });
+        res.status(200).json({ files,grade,feedback  });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
