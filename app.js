@@ -38,6 +38,8 @@ const pollRoutes = require("./Routes/Poll.routes");
 const adminRoutes = require("./Routes/Admin.routes");
 const noteRoutes = require("./Routes/Note.routes");
 const CareerRoutes = require("./Routes/Career.routes");
+const ProgressRoutes = require("./Routes/Progress.routes");
+
 
 
 // use routes here
@@ -54,6 +56,8 @@ app.use("/api/poll", pollRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/note", noteRoutes);
 app.use("/api/career", CareerRoutes);
+app.use("/api/progress", ProgressRoutes);
+
 
 
 const server = app.listen(PORT, () => {
