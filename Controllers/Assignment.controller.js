@@ -4,6 +4,10 @@ const Session = require('../Models/Session.model');
 const cloudinary = require("../Configuration/Cloudinary");
 const Notifications = require('../Models/Notification.model');
 const Student = require("../Models/Student.model");
+const Progress = require("../Models/progress.model");
+const teacher = require("../Models/progress.model");
+
+
 
 const deleteAssignment = async (req, res) => {
     try {
@@ -36,11 +40,34 @@ const getSessionAssignments = async (req, res) => {
 
 const gradeAssignment = async (req, res) => {
     try {
+        const teacherId = req.user.profileID
         const { submissionId } = req.params;
-        const { grade, feedback } = req.body;
+        const { grade, feedback,total,title ,assignmentId} = req.body;
 
         await Submission.findByIdAndUpdate(submissionId, { grade, feedback });
 
+        let progress = await Progress.findOne({ teacher: teacherId });
+        if (!progress) {
+            progress = await Progress.create({ teacher: teacherId });
+        }
+
+        const assignmentIndex = progress.assignments.findIndex(a => a.assignmentId.equals(assignmentId));
+
+        if (assignmentIndex === -1) {
+            // If the assignment doesn't exist, add it to the Progress document
+            progress.assignments.push({
+                assignmentId,
+                title,
+                total,
+                grades: [grade]
+            });
+        } else {
+            // If the assignment exists, update the grade
+            progress.assignments[assignmentIndex].grades.push(grade);
+        }
+
+        await progress.save();
+   
         
         res.status(200).json({ message: 'Assignment grade and feedback updated successfully' });
     } catch (error) {
