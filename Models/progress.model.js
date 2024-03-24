@@ -7,24 +7,33 @@ const progressSchema = new mongoose.Schema({
     required: true
   },
   
-  assignments: [{
-    assignmentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Assignment',
+  sessions: [{
+    session: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Session',
+      required: true
     },
-    
-     
-    title: {
+    subject: {
       type: String,
       required: true
     },
-    total: {
-      type: Number,
-      required: true
-    },
-    grades: [{
-      type: Number,
-      required: true
+    assignments: [{
+      assignmentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Assignment',
+      },
+      title: {
+        type: String,
+        required: true
+      },
+      total: {
+        type: Number,
+        required: true
+      },
+      grades: [{
+        type: Number,
+        required: true
+      }]
     }]
   }]
 });
