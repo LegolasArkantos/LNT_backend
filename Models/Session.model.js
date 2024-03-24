@@ -43,6 +43,10 @@ const sessionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Assignment',
     }],
+    quiz: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Quiz'
+    }]
 
 });
 

@@ -39,7 +39,7 @@ const adminRoutes = require("./Routes/Admin.routes");
 const noteRoutes = require("./Routes/Note.routes");
 const CareerRoutes = require("./Routes/Career.routes");
 const ProgressRoutes = require("./Routes/Progress.routes");
-
+const quizRoutes = require("./Routes/Quiz.routes")
 
 
 // use routes here
@@ -57,6 +57,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/note", noteRoutes);
 app.use("/api/career", CareerRoutes);
 app.use("/api/progress", ProgressRoutes);
+app.use("/api/quiz", quizRoutes);
 
 
 
