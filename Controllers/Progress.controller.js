@@ -13,7 +13,7 @@ const getAssignmentData = async (req, res) => {
             return res.status(404).json({ message: 'Progress not found for this teacher' });
         }
 
-        res.status(200).json({ assignments: progress.assignments });
+        res.status(200).json({ sessions: progress.sessions });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });

@@ -40,9 +40,9 @@ const getSessionAssignments = async (req, res) => {
 
 const gradeAssignment = async (req, res) => {
     try {
-        const teacherId = req.user.profileID
+        const teacherId = req.user.profileID;
         const { submissionId } = req.params;
-        const { grade, feedback,total,title ,assignmentId} = req.body;
+        const { grade, feedback, total, title, assignmentId, sessionId, subject } = req.body;
 
         await Submission.findByIdAndUpdate(submissionId, { grade, feedback });
 
@@ -51,11 +51,17 @@ const gradeAssignment = async (req, res) => {
             progress = await Progress.create({ teacher: teacherId });
         }
 
-        const assignmentIndex = progress.assignments.findIndex(a => a.assignmentId.equals(assignmentId));
+        let session = progress.sessions.find(session => session.session.equals(sessionId));
+        if (!session) {
+            session = { session: sessionId, subject, assignments: [] };
+            progress.sessions.push(session);
+        }
+
+        const assignmentIndex = session.assignments.findIndex(a => a.assignmentId.equals(assignmentId));
 
         if (assignmentIndex === -1) {
-            // If the assignment doesn't exist, add it to the Progress document
-            progress.assignments.push({
+            // If the assignment doesn't exist in the session, add it to the session
+            session.assignments.push({
                 assignmentId,
                 title,
                 total,
@@ -63,11 +69,10 @@ const gradeAssignment = async (req, res) => {
             });
         } else {
             // If the assignment exists, update the grade
-            progress.assignments[assignmentIndex].grades.push(grade);
+            session.assignments[assignmentIndex].grades.push(grade);
         }
 
         await progress.save();
-   
         
         res.status(200).json({ message: 'Assignment grade and feedback updated successfully' });
     } catch (error) {
@@ -75,6 +80,8 @@ const gradeAssignment = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+
 
 const submitSubmission = async (req, res) => {
     try {
