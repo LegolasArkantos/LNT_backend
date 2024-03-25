@@ -6,20 +6,21 @@ const quizSubmissionSchema = new mongoose.Schema({
         ref: 'Student',
         required: true,
     },
-    quiz: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Quiz',
-    },
+    // quiz: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'Quiz',
+    // },
 
     answers: [String],
 
-    studentName: {
-        type: String,
-        required: true,
-    },
+    // studentName: {
+    //     type: String,
+    //     required: true,
+    // },
 
-    grade: {
+    marks: {
         type: Number,
+        default: 0
     }
 });
 

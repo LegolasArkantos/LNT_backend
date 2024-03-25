@@ -67,8 +67,15 @@ const getSubmission = async (req, res) => {
 const getAllSubmission = async (req, res) => {
     try {
         const quizId = req.params.quizId;
-        const submissions = await Quiz.findById(quizId).select('submissions').populate('submissions');
-        res.status(200).json(submissions);
+        const submissions = await Quiz.findById(quizId).select('submissions')
+        .populate({
+            path: 'submissions',
+            populate: {
+                path: 'student' 
+            }
+        });
+        console.log(submissions);
+        res.status(200).json(submissions.submissions);
     }
     catch (error) {
         console.error(error);
@@ -76,26 +83,88 @@ const getAllSubmission = async (req, res) => {
     } 
 };
 
-const gradeSubmission = async (req, res) => {
+// const gradeSubmission = async (req, res) => {
+//     try {
+//         const {submissionId, quizId} = req.params;
+//         const submission = await QuizSubmission.findById(submissionId);
+//         const quiz = await Quiz.findById(quizId);
+//         var count = 0;
+//         for (let i = 0; i < 5; i++) {
+//             if (quiz.questions[i].correctAns === submission.answers[i]) {
+//                 count++;
+//             };
+//         };
+//         await QuizSubmission.findByIdAndUpdate(submissionId, {grade: count});
+//         res.status(200).json(
+//             {message: "quiz graded!"}
+//         );
+//     }
+//     catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal Server Error' });
+//     } 
+// }
+
+const submitQuiz = async (req, res) => {
+    const student = req.user.profileID;
     try {
-        const {submissionId, quizId} = req.params;
-        const submission = await QuizSubmission.findById(submissionId);
+        const quizId = req.params.quizId;
+        const { answers } = req.body;
+
         const quiz = await Quiz.findById(quizId);
-        var count = 0;
-        for (let i = 0; i < 5; i++) {
-            if (quiz.questions[i].correctAns === submission.answers[i]) {
+        
+        const quizSubmission = await QuizSubmission.create({
+            student,
+            answers,
+        });
+
+        var count = 0
+        for (let i = 0; i < quiz.questions.length; i++) {
+            if (quiz.questions[i].correctAns === quizSubmission.answers[i]) {
                 count++;
             };
         };
-        await QuizSubmission.findByIdAndUpdate(submissionId, {grade: count});
-        res.status(200).json(
-            {message: "quiz graded!"}
-        );
+        quizSubmission.marks = count;
+        await quizSubmission.save();
+        quiz.submissions.push(quizSubmission._id)
+        await quiz.save();
+        res.status(200).json({ message: 'Quiz submitted successfully.' });
+    } catch (error) {
+        // Respond with an error if something goes wrong
+        console.log(error)
+        res.status(500).json({ error });
+    }
+}
+
+const getMySessionQuizSubmissions = async (req, res) => {
+
+    try {
+        const sessionId = req.params.sessionId;
+        const profileID = req.user.profileID;
+
+        const quizes = await Session.findById(sessionId)
+        .select('quiz')
+        .populate({
+            path: 'quiz',
+            populate: {
+                path: 'submissions' 
+            }
+        });
+        var studentSubmissions = [];
+
+        for (const quiz of quizes.quiz) {
+            for (const submission of quiz.submissions) {
+                if (submission.student == profileID) {
+                    studentSubmissions.push(submission);
+                }
+            }
+        }
+        res.status(200).json(studentSubmissions);
+
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    } 
+        console.log(error)
+    }
 }
 
 
@@ -105,6 +174,7 @@ module.exports = {
     sessionQuizes,
     getSubmission,
     getAllSubmission,
-    gradeSubmission,
-    getQuiz
+    getQuiz,
+    submitQuiz,
+    getMySessionQuizSubmissions
 };
