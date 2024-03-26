@@ -9,6 +9,7 @@ router.get("/get-session-quizes/:sessionId", authMiddleware.authenticateUser, qu
 router.get('/get-quiz/:quizId', authMiddleware.authenticateUser,  quizController.getQuiz);
 router.get('/get-quiz-submission/:quizId', authMiddleware.authenticateStudent,  quizController.getSubmission);
 router.get('/get-quiz-submissions/:quizId', authMiddleware.authenticateTeacher,  quizController.getAllSubmission);
-router.get('/grade-submissions/:quizId/:submissionId', authMiddleware.authenticateTeacher,  quizController.gradeSubmission);
+router.post('/submit/:quizId', authMiddleware.authenticateStudent,  quizController.submitQuiz);
+router.get('/my-session-quiz-submissions/:sessionId', authMiddleware.authenticateStudent,quizController.getMySessionQuizSubmissions);
 
 module.exports = router;
