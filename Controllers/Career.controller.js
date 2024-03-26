@@ -1,4 +1,5 @@
 const Teacher = require('../Models/Teacher.model');
+const TeacherCareer = require('../Models/TeacherCareer.model')
 
 const  getCareer = async (req, res) => {
 
@@ -21,7 +22,7 @@ const  getCareer = async (req, res) => {
 
 const  createProfile = async (req, res) => {
   try {
-    const { description, timing } = req.body;
+    const { description, timings } = req.body;
     const teacherId = req.user.profileID;
 
     const existingEntry = await TeacherCareer.findOne({ teacherId });
@@ -36,12 +37,15 @@ const  createProfile = async (req, res) => {
     const newEntry = new TeacherCareer({
       name: `${teacher.firstName} ${teacher.lastName}`,
       profilePic:teacher.profilePicture,
-      teacherId,
+      teacher:teacherId,
       description,
-      timing
+      timing:timings,
     });
 
     await newEntry.save();
+
+    teacher.careerCounselling=true,
+    await teacher.save();
 
     res.status(201).json({ message: 'Teacher career entry created successfully' });
   } catch (err) {
@@ -75,13 +79,28 @@ const  updateProfile = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+const  getProfile = async (req, res) => {
 
+try {
+  const teacherId = req.user.profileID;
 
+  const teacherCareerData = await TeacherCareer.findOne({ teacher:teacherId });
 
+  if (!teacherCareerData) {
+    return res.status(404).json({ message: 'Teacher career data not found' });
+  }
+
+  res.json(teacherCareerData);
+} catch (error) {
+  console.error('Error getting teacher career data:', error);
+  res.status(500).json({ message: 'Server error' });
+}
+}
 
 module.exports ={
     getCareer,
     createProfile,
     updateProfile,
+    getProfile,
 
 }
