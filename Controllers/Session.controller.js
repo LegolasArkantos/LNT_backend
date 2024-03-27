@@ -8,17 +8,14 @@ const createSession = async (req, res) => {
     const teacherId = req.user.profileID;
     const { startTime, endTime, status, subject, sessionPrice } = req.body;
 
-    // Find the teacher
     const teacher = await Teacher.findById(teacherId);
     
     if (!teacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    // Find the user associated with the teacher
     
 
-    // Create session with teacherName extracted from user info
     const session = await Session.create({
       teacher: teacherId,
       teacherName: `${teacher.firstName} ${teacher.lastName}`,
