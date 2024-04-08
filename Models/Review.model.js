@@ -15,6 +15,10 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  sessionName: {
+    type: String,
+    required: true
+  },
   rating: {
     type: Number,
     required: true,
@@ -26,8 +30,8 @@ const reviewSchema = new mongoose.Schema({
     required: true,
   },
   timestamp: {
-    type: Date,
-    default: Date.now,
+    type: String,
+    required: true
   },
 });
 
