@@ -7,6 +7,8 @@ const router = express.Router();
 router.get('/getCareer', authMiddleware.authenticateTeacher, CareerController.getCareer);
 router.post('/createCareer', authMiddleware.authenticateTeacher, CareerController.createProfile);
 router.get('/getCareerProfile', authMiddleware.authenticateTeacher, CareerController.getProfile);
+router.get('/getCareerTeachers', authMiddleware.authenticateStudent, CareerController.getCareerTeachers);
+
 
 
 
