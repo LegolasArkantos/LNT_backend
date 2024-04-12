@@ -16,8 +16,14 @@ const reviewDataSchema = new mongoose.Schema({
         ref: 'Student',
     }],
     reviewWeightages: [{
-        averageMark: Number,
-        rating: Number
+        averageMark: {
+            type: Number,
+            default: 0
+        },
+        rating: {
+            type: Number,
+            default: 0
+        }
     }],
 });
 

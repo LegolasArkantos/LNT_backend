@@ -48,6 +48,7 @@ const getMyStudents = async (req, res) => {
       // Loop through sessions
       for (const session of sessions) {
         const sessionData = {
+          teacher: session.teacher,
           sessionId :session.id,
           subject: session.subject,
           startTime: session.startTime,

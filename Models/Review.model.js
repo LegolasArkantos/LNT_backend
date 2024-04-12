@@ -11,10 +11,6 @@ const reviewSchema = new mongoose.Schema({
     ref: 'Teacher',
     required: true,
   },
-  studentName: {
-    type: String,
-    required: true
-  },
   sessionName: {
     type: String,
     required: true

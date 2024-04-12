@@ -8,7 +8,7 @@ const addReview = async (req, res) => {
   const studentId = req.user.profileID;
   const { sessionId, teacherId  } = req.params
   try {
-    const { rating, comment, sessionName, time } = req.body;
+    const { rating, comment, time } = req.body;
 
     // Check if the teacher exists
     const teacher = await Teacher.findById(teacherId);
@@ -16,12 +16,12 @@ const addReview = async (req, res) => {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
-    const student = await Student.findById(studentId).populate("user");
+    const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    const session = await Session.findById(sessionId).populate([
+    const session = await Sessions.findById(sessionId).populate([
       {
         path: "assignment",
         populate: {
@@ -40,7 +40,7 @@ const addReview = async (req, res) => {
     
     let reviewWeightagesSum = 0;
     let totalAverageMarks = 0;
-    if (!reviewData.students) {
+    if (reviewData.students) {
       for (const reviewWeightage of reviewData.reviewWeightages) {
         reviewWeightagesSum = reviewWeightagesSum + (reviewWeightage.averageMark * reviewWeightage.rating);
         totalAverageMarks = totalAverageMarks + reviewWeightage.averageMark;
@@ -49,9 +49,10 @@ const addReview = async (req, res) => {
 
     let studentAssignmentMarks = 0
     let studentAssignmentsCount = 0
-    for (const assignment of session.assignment.assignment) {
-      for (const submission of assignment.submissions.submissions) {
-        if (studentId === submission.student) {
+    
+    for (const assignment of session.assignment) {
+      for (const submission of assignment.submissions) {
+        if (studentId === submission.student.toString()) {
           studentAssignmentsCount++;
           studentAssignmentMarks = studentAssignmentMarks + submission.grade;
         }
@@ -61,9 +62,9 @@ const addReview = async (req, res) => {
 
     let studentQuizMarks = 0;
     let studentQuizCount = 0;
-    for (const quiz of sessions.quiz.quiz) {
-      for (const quizSubmission of quiz.submissions.submissions) {
-        if (studentId === quizSubmission.student) {
+    for (const quiz of session.quiz) {
+      for (const quizSubmission of quiz.submissions) {
+        if (studentId === quizSubmission.student.toString()) {
           studentQuizCount++;
           studentQuizMarks = studentQuizMarks + quizSubmission.marks;
         }
@@ -72,7 +73,6 @@ const addReview = async (req, res) => {
     studentQuizMarks = studentQuizMarks/studentQuizCount;
 
     const studentAverageMarks = (studentAssignmentMarks + studentQuizMarks)/2;
-    
     const newTeacherRating = (reviewWeightagesSum + (studentAverageMarks*rating))/(totalAverageMarks + studentAverageMarks)
 
     reviewData.reviewWeightages.push({averageMark: studentAverageMarks, rating: rating});
@@ -80,14 +80,12 @@ const addReview = async (req, res) => {
     await reviewData.save();
     teacher.rating = newTeacherRating;
     await teacher.save();
-    const studentName = `${student.user.firstName} ${student.user.lastName}`;
 
-    // Create a new review with studentName
+    
     const review = new Review({
       student: studentId,
       teacher: teacherId,
-      studentName: studentName,
-      sessionName: sessionName,
+      sessionName: session.subject,
       rating: rating,
       comment: comment,
       timestamp: time
@@ -115,48 +113,59 @@ const getTeacherReviews = async (req, res) => {
   }
 };
 
-const updateReview = async (req, res) => {
+const getTeacherReviewsBySession = async (req, res) => {
   try {
-    const { reviewId } = req.params;
-    const { rating, comment } = req.body;
+    const { teacherId, sessionName } = req.params;
+    const reviews = await Review.find({ teacher: teacherId, sessionName }).populate('student');
 
-    const review = await Review.findByIdAndUpdate(
-      reviewId,
-      { rating, comment },
-      { new: true }
-    );
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    res.status(200).json({ message: "Review updated successfully", review });
+    res.status(200).json(reviews);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-const deleteReview = async (req, res) => {
-  try {
-    const { reviewId } = req.params;
+// const updateReview = async (req, res) => {
+//   try {
+//     const { reviewId } = req.params;
+//     const { rating, comment } = req.body;
 
-    const review = await Review.findByIdAndDelete(reviewId);
+//     const review = await Review.findByIdAndUpdate(
+//       reviewId,
+//       { rating, comment },
+//       { new: true }
+//     );
 
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
+//     if (!review) {
+//       return res.status(404).json({ message: "Review not found" });
+//     }
 
-    res.status(200).json({ message: "Review deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+//     res.status(200).json({ message: "Review updated successfully", review });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
+// const deleteReview = async (req, res) => {
+//   try {
+//     const { reviewId } = req.params;
+
+//     const review = await Review.findByIdAndDelete(reviewId);
+
+//     if (!review) {
+//       return res.status(404).json({ message: "Review not found" });
+//     }
+
+//     res.status(200).json({ message: "Review deleted successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
 
 module.exports = {
   addReview,
   getTeacherReviews,
-  updateReview,
-  deleteReview,
+  getTeacherReviewsBySession
 };
