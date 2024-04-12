@@ -11,7 +11,7 @@ const reviewSchema = new mongoose.Schema({
     ref: 'Teacher',
     required: true,
   },
-  studentName: {
+  sessionName: {
     type: String,
     required: true
   },
@@ -26,8 +26,8 @@ const reviewSchema = new mongoose.Schema({
     required: true,
   },
   timestamp: {
-    type: Date,
-    default: Date.now,
+    type: String,
+    required: true
   },
 });
 

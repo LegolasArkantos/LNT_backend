@@ -1,6 +1,7 @@
 const Session = require('../Models/Session.model');
 const Student = require('../Models/Student.model');
-const Teacher = require('../Models/Teacher.model')
+const Teacher = require('../Models/Teacher.model');
+const ReviewData = require('../Models/ReviewData.model');
 const mongoose = require("mongoose");
 
 const createSession = async (req, res) => {
@@ -27,6 +28,11 @@ const createSession = async (req, res) => {
       subject,
       sessionPrice,
     });
+
+    await ReviewData.create({
+      session: session._id,
+      teacher: teacherId,
+    })
 
     // Add session to teacher's sessions array
     teacher.sessions.push(session._id);
