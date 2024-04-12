@@ -97,10 +97,29 @@ try {
 }
 }
 
+const  getCareerTeachers = async (req, res) => {
+
+  try {
+    
+    const teacherCareerData = await TeacherCareer.find().populate('teacher', 'rating')
+    .exec();
+
+    
+    
+    if (!teacherCareerData.length) {
+      return res.status(200).json([]);
+    }
+    res.json(teacherCareerData);
+  } catch (error) {
+    console.error('Error getting teacher career data:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+  }
 module.exports ={
     getCareer,
     createProfile,
     updateProfile,
     getProfile,
+    getCareerTeachers,
 
 }
