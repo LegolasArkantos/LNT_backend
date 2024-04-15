@@ -107,7 +107,7 @@ const updatePollCount = async (req, res) => {
         // Ensure total is not zero to avoid division by zero
         if (total !== 0) {
             for (const option of poll.options) {
-                option.percentage = (option.count / total) * 100;
+                option.percentage = ((option.count / total) * 100).toFixed(1);
             }
         }
 
