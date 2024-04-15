@@ -78,7 +78,7 @@ const addReview = async (req, res) => {
     reviewData.reviewWeightages.push({averageMark: studentAverageMarks, rating: rating});
     reviewData.students.push(studentId);
     await reviewData.save();
-    teacher.rating = newTeacherRating;
+    teacher.rating = Math.round(newTeacherRating);
     await teacher.save();
 
     
@@ -104,9 +104,9 @@ const getTeacherReviews = async (req, res) => {
   try {
     const { teacherId } = req.params;
 
-    const reviews = await Review.find({ teacher: teacherId });
+    const reviews = await Review.find({ teacher: teacherId }).populate('student');
 
-    res.status(200).json({ reviews });
+    res.status(200).json(reviews);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
