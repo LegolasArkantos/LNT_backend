@@ -1,6 +1,7 @@
 const Quiz = require('../Models/Quiz.model');
 const Session = require('../Models/Session.model');
 const QuizSubmission = require('../Models/QuizSubmission.model');
+const mammoth = require('mammoth');
 
 const createQuiz = async (req, res) => {
     try {
@@ -82,6 +83,54 @@ const getAllSubmission = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     } 
 };
+
+const uploadQuestionsFromFile = (req, res) => {
+    try {
+        const file = req.file;
+        console.log(file);
+        if (file) {
+            mammoth.extractRawText({ buffer: file.buffer })
+            .then((result) => {
+                
+                const text = result.value;
+                const lines = text.split('\n');
+                var questions = []
+                var newQuestion = {}
+                var nextQuestion = true;
+                lines.forEach((line) => {
+                    if (nextQuestion) {
+                        newQuestion = {
+                            question: '',
+                            options: [],
+                            correctAns: ''
+                        };
+                    }
+                    if (line.endsWith('?')) {
+                        nextQuestion = false;
+                        newQuestion.question = line.substring(3);
+                    }
+                    if (line.startsWith('a') || line.startsWith('b') || line.startsWith('c') || line.startsWith('d')) {
+                        newQuestion.options.push(line.substring(3).trim()); // Extract optionText and trim whitespace
+                    }
+                    if (line.startsWith('Answer:')) {
+                        newQuestion.correctAns = line.substring(8).trim(); // Extract correctAns and trim whitespace
+                        questions.push(newQuestion);
+                        nextQuestion = true;
+                    }
+                });
+                res.status(200).json(questions);
+            });
+        }
+        else {
+            res.status(500).json({ message: 'Internal Server Error, file not read!' });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
 
 // const gradeSubmission = async (req, res) => {
 //     try {
@@ -176,5 +225,6 @@ module.exports = {
     getAllSubmission,
     getQuiz,
     submitQuiz,
-    getMySessionQuizSubmissions
+    getMySessionQuizSubmissions,
+    uploadQuestionsFromFile
 };
