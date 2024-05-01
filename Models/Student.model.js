@@ -45,6 +45,13 @@ const studentSchema = new mongoose.Schema({
   aboutMe: {
     type: String,
   },
+
+  careerteacher: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TeacherCareer",
+    },
+  ],
 });
 
 module.exports = mongoose.model("Student", studentSchema);
