@@ -129,7 +129,6 @@ const  getCareerTeachers = async (req, res) => {
         return res.status(404).json({ message: 'Student not found' });
       }
   
-      // Check if the careerTeacherId already exists in the student's careerteacher array
       if (student.careerteacher.includes(careerTeacherId)) {
         return res.status(400).json({ message: 'Career teacher already joined' });
       }
@@ -137,6 +136,16 @@ const  getCareerTeachers = async (req, res) => {
       student.careerteacher.push(careerTeacherId);
   
       await student.save();
+      
+      const careerTeacher = await TeacherCareer.findById(careerTeacherId);
+      
+      if (!careerTeacher) {
+        return res.status(404).json({ message: 'Career teacher not found' });
+      }
+      
+      careerTeacher.students.push(studentId);
+      
+      await careerTeacher.save();
   
       res.json({ message: 'Career teacher joined successfully' });
     } catch (error) {
@@ -144,6 +153,7 @@ const  getCareerTeachers = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   };
+
   
   
   const getStudentCareerTeachers = async (req,res) => {
@@ -165,6 +175,28 @@ const  getCareerTeachers = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   }
+
+  const getCareerTeacherStudents = async (req, res) => {
+    try {
+        const { careerTeacherId } = req.params;
+
+        // Find the career teacher by ID
+        const careerTeacher = await TeacherCareer.findById(careerTeacherId).populate('students');
+
+        if (!careerTeacher) {
+            return res.status(404).json({ message: 'Career teacher not found' });
+        }
+
+        const students = careerTeacher.students;
+
+        res.json({ students });
+    } catch (error) {
+        console.error('Error fetching career teacher students:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
 module.exports ={
     getCareer,
     createProfile,
@@ -173,5 +205,6 @@ module.exports ={
     getCareerTeachers,
     addCareerTeacher,
     getStudentCareerTeachers,
+    getCareerTeacherStudents,
 
 }

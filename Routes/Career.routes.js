@@ -10,6 +10,8 @@ router.get('/getCareerProfile', authMiddleware.authenticateTeacher, CareerContro
 router.get('/getCareerTeachers', authMiddleware.authenticateStudent, CareerController.getCareerTeachers);
 router.post('/addCareerTeacher', authMiddleware.authenticateStudent, CareerController.addCareerTeacher);
 router.get('/getStudentCareerTeachers', authMiddleware.authenticateStudent, CareerController.getStudentCareerTeachers);
+router.get('/getCareerTeacherStudents/:careerTeacherId', authMiddleware.authenticateTeacher, CareerController.getCareerTeacherStudents);
+
 
 
 
