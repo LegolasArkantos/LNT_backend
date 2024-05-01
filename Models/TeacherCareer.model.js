@@ -21,7 +21,11 @@ const teacherCareerSchema = new mongoose.Schema({
   timing: {
     type: String,
     required: true
-  }
+  },
+  students: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+  }],
 });
 
 module.exports = mongoose.model('TeacherCareer', teacherCareerSchema);

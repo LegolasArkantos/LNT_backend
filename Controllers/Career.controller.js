@@ -1,5 +1,7 @@
 const Teacher = require('../Models/Teacher.model');
 const TeacherCareer = require('../Models/TeacherCareer.model')
+const Student = require('../Models/Student.model');
+
 
 const  getCareer = async (req, res) => {
 
@@ -115,11 +117,94 @@ const  getCareerTeachers = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
   }
+
+  const addCareerTeacher = async (req, res) => {
+    try {
+      const studentId = req.user.profileID;
+      const { careerTeacherId } = req.body;
+  
+      const student = await Student.findById(studentId);
+  
+      if (!student) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+  
+      if (student.careerteacher.includes(careerTeacherId)) {
+        return res.status(400).json({ message: 'Career teacher already joined' });
+      }
+  
+      student.careerteacher.push(careerTeacherId);
+  
+      await student.save();
+      
+      const careerTeacher = await TeacherCareer.findById(careerTeacherId);
+      
+      if (!careerTeacher) {
+        return res.status(404).json({ message: 'Career teacher not found' });
+      }
+      
+      careerTeacher.students.push(studentId);
+      
+      await careerTeacher.save();
+  
+      res.json({ message: 'Career teacher joined successfully' });
+    } catch (error) {
+      console.error('Error joining career teacher:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+  
+  
+  const getStudentCareerTeachers = async (req,res) => {
+
+    try {
+      const studentId = req.user.profileID;
+  
+      const student = await Student.findById(studentId).populate('careerteacher');
+  
+      if (!student) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+  
+      const careerTeachers = student.careerteacher;
+  
+      res.json({ careerTeachers });
+    } catch (error) {
+      console.error('Error fetching career teachers:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  const getCareerTeacherStudents = async (req, res) => {
+    try {
+        const { careerTeacherId } = req.params;
+
+        // Find the career teacher by ID
+        const careerTeacher = await TeacherCareer.findById(careerTeacherId).populate('students');
+
+        if (!careerTeacher) {
+            return res.status(404).json({ message: 'Career teacher not found' });
+        }
+
+        const students = careerTeacher.students;
+
+        res.json({ students });
+    } catch (error) {
+        console.error('Error fetching career teacher students:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
 module.exports ={
     getCareer,
     createProfile,
     updateProfile,
     getProfile,
     getCareerTeachers,
+    addCareerTeacher,
+    getStudentCareerTeachers,
+    getCareerTeacherStudents,
 
 }
