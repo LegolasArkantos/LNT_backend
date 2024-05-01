@@ -1,5 +1,7 @@
 const Teacher = require('../Models/Teacher.model');
 const TeacherCareer = require('../Models/TeacherCareer.model')
+const Student = require('../Models/Student.model');
+
 
 const  getCareer = async (req, res) => {
 
@@ -115,11 +117,61 @@ const  getCareerTeachers = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
   }
+
+  const addCareerTeacher = async (req, res) => {
+    try {
+      const studentId = req.user.profileID;
+      const { careerTeacherId } = req.body;
+  
+      const student = await Student.findById(studentId);
+  
+      if (!student) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+  
+      // Check if the careerTeacherId already exists in the student's careerteacher array
+      if (student.careerteacher.includes(careerTeacherId)) {
+        return res.status(400).json({ message: 'Career teacher already joined' });
+      }
+  
+      student.careerteacher.push(careerTeacherId);
+  
+      await student.save();
+  
+      res.json({ message: 'Career teacher joined successfully' });
+    } catch (error) {
+      console.error('Error joining career teacher:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
+  
+  const getStudentCareerTeachers = async (req,res) => {
+
+    try {
+      const studentId = req.user.profileID;
+  
+      const student = await Student.findById(studentId).populate('careerteacher');
+  
+      if (!student) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+  
+      const careerTeachers = student.careerteacher;
+  
+      res.json({ careerTeachers });
+    } catch (error) {
+      console.error('Error fetching career teachers:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
 module.exports ={
     getCareer,
     createProfile,
     updateProfile,
     getProfile,
     getCareerTeachers,
+    addCareerTeacher,
+    getStudentCareerTeachers,
 
 }

@@ -147,7 +147,7 @@ const getMyStudents = async (req, res) => {
                 });
             }
         }
-
+        console.log(sessionData)
         res.status(200).json({ sessionData });
     } catch (error) {
         console.error(error);
