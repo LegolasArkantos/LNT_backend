@@ -1,4 +1,12 @@
 
+const Teacher = require('../Models/Teacher.model');
+const Session = require('../Models/Session.model');
+const Assignment = require('../Models/Assignment.model');
+const Submission = require('../Models/Submission.model');
+
+
+
+
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
@@ -38,5 +46,67 @@ async function generateStory(req, res) {
       res.status(500).json({ error: "Failed to generate " });
     }
   }
-  
-  module.exports = { generateStory };
+
+  async function generateAnalysis(req, res) {
+    try {
+        const customMessage = "in paragraph form with full sentences tell me the sessions and the assignment names  the grades of each student in them :";
+        const teacherId = req.user.profileID;
+
+        // Retrieve teacher's data with populated sessions, assignments, and submissions
+        const teacher = await Teacher.findById(teacherId).populate({
+            path: 'sessions',
+            populate: {
+                path: 'assignment',
+                populate: {
+                    path: 'submissions'
+                }
+            }
+        });
+
+        if (!teacher) {
+            return res.status(404).json({ error: "Teacher not found" });
+        }
+
+        // Format the populated data for passing to the AI model
+        const dataForAI = formatDataForAI(teacher);
+
+        // Generate AI content
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent(customMessage + " " + dataForAI);
+        const response = await result.response;
+        const text = await response.text();
+
+        res.json({ text: text });
+    } catch (error) {
+        console.error("Error generating analysis:", error);
+        res.status(500).json({ error: "Failed to generate analysis" });
+    }
+}
+
+// Function to format data for AI
+function formatDataForAI(teacher) {
+    // Prepare the data in a suitable format for the AI model
+    const data = {
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        sessions: teacher.sessions.map(session => ({
+            subject: session.subject,
+            assignment: session.assignment.map(assignment => ({
+                title: assignment.title,
+                submissions: assignment.submissions.map(submission => ({
+                    studentName: submission.studentName,
+                    grade: submission.grade
+                }))
+            }))
+        }))
+    };
+
+    // Convert the data to JSON string for passing to the AI model
+    const formattedData = JSON.stringify(data);
+    return formattedData;
+}
+
+  module.exports = { 
+    generateStory,
+    generateAnalysis,
+  };
