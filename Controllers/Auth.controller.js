@@ -35,19 +35,16 @@ const signup = async (req, res) => {
     // Check password format (at least 8 characters, containing letters and numbers)
     const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])/;
     if (password.length < 8) {
-      return res
-        .status(501)
-        .send("Password must be at least 8 characters long");
+      return res.status(400).send("Password must be at least 8 characters long");
     }
-
     if (!passwordRegex.test(password)) {
       return res.status(400).send("Invalid password format");
     }
 
-    const result = await User.findOne({ email });
-
-    if (result != null) {
-      res.status(400).send("Email already exist, Please login.");
+    // Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).send("Email already exists. Please login.");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -58,83 +55,58 @@ const signup = async (req, res) => {
       role,
     });
 
-    if (role === "Teacher") {
+    if (role === "Teacher" || role === "Student") {
       const {
         firstName,
         lastName,
         profilePicture,
+        personality,
+        aboutMe,
         educationalCredential,
-        personality,
-        aboutMe,
-        credentialFiles,
+        educationalLevel,
       } = req.body;
 
-      if (profilePicture === "") {
-        res.status(404).json({ message: "Pls upload Image" });
-      } else {
-        const result = await cloudinary.uploader.upload(profilePicture, {
-          upload_preset: "ml_default",
-          resource_type: "auto",
-        });
-
-        const profile = await Teacher.create({
-          firstName,
-          lastName,
-          profilePicture: result.secure_url,
-          educationalCredential,
-          personality,
-          aboutMe,
-          credentialFiles,
-        });
-        user.profileID = profile._id;
-
-        notifications = new Notifications({
-          profileID: profile._id,
-          role: "Teacher",
-        });
-        profile.notificationsID = notifications._id;
-        await notifications.save();
-        await profile.save();
+      if (!profilePicture) {
+        return res.status(400).json({ message: "Please upload a profile picture" });
       }
-    } else if (role === "Student") {
-      const {
+
+      const profileData = {
         firstName,
         lastName,
-        profilePicture,
-        educationalLevel,
+        profilePicture, // Assuming profilePicture is the URL of the profile picture from Firebase Storage
         personality,
         aboutMe,
-      } = req.body;
+      };
 
-      if (profilePicture === "") {
-        res.status(404).json({ message: "Pls upload Image" });
-      } else {
-        const result = await cloudinary.uploader.upload(profilePicture, {
-          upload_preset: "ml_default",
-          resource_type: "auto",
-        });
-
-        const profile = await Student.create({
-          firstName,
-          lastName,
-          profilePicture: result.secure_url,
-          educationalLevel,
-          personality,
-          aboutMe,
-        });
-        user.profileID = profile._id;
-
-        notifications = new Notifications({
-          profileID: profile._id,
-          role: "Student",
-        });
-
-        profile.notificationsID = notifications._id;
-        await notifications.save();
-        await profile.save();
+      if (role === "Teacher") {
+        profileData.educationalCredential = educationalCredential;
+      } else if (role === "Student") {
+        profileData.educationalLevel = educationalLevel;
       }
+
+      let profile;
+      if (role === "Teacher") {
+        profile = await Teacher.create(profileData);
+      } else if (role === "Student") {
+        profile = await Student.create(profileData);
+      }
+
+      // Link the profile to the user
+      user.profileID = profile._id;
+
+      // Create and link notifications
+      const notifications = new Notifications({
+        profileID: profile._id,
+        role,
+      });
+      profile.notificationsID = notifications._id;
+
+      // Save everything
+      await notifications.save();
+      await profile.save();
     }
 
+    // Save the user
     const finalResult = await user.save();
 
     res.status(201).json(finalResult);
@@ -143,6 +115,9 @@ const signup = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+module.exports = { signup };
+
 
 const login = async (req, res) => {
   try {
