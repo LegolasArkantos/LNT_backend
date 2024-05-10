@@ -207,7 +207,38 @@ const searchSessionbyQuery = async (req, res) => {
   }
 }
 
+const launchSession = async (req, res) => {
+  try {
+      const sessionId = req.params.sessionId;
+      const session = await Session.findByIdAndUpdate(sessionId, {sessionStarted: true}, {new: true});
+      console.log(session)
+      if (!session) {
+          return res.status(500).json({message: 'failed to launch session'});
+      }
+      console.log("hello")
+      res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
 
+const endSession = async (req, res) => {
+  try {
+      const sessionId = req.params.sessionId;
+      const session = await Session.findByIdAndUpdate(sessionId, {sessionStarted: false}, {new: true});
+      if (!session) {
+          return res.status(500).json({message: 'failed to end session'});
+      }
+      console.log("hello")
+      res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
   
 module.exports = {
     createSession,
@@ -215,5 +246,7 @@ module.exports = {
     joinSession,
     updateSession,
     getSpecificSession,
-    searchSessionbyQuery
+    searchSessionbyQuery,
+    launchSession,
+    endSession
 };

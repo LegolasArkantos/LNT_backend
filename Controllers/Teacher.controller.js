@@ -224,11 +224,12 @@ const getTeacher = async (req, res) => {
 };
 
 
+
 module.exports = {
     getProfile,
     getMyStudents,
     updateProfile,
     getSpecificSession,
     getStudent,
-    getTeacher
+    getTeacher,
 };

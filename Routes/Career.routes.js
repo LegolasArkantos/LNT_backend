@@ -11,7 +11,8 @@ router.get('/getCareerTeachers', authMiddleware.authenticateStudent, CareerContr
 router.post('/addCareerTeacher', authMiddleware.authenticateStudent, CareerController.addCareerTeacher);
 router.get('/getStudentCareerTeachers', authMiddleware.authenticateStudent, CareerController.getStudentCareerTeachers);
 router.get('/getCareerTeacherStudents/:careerTeacherId', authMiddleware.authenticateTeacher, CareerController.getCareerTeacherStudents);
-
+router.post('/launch-counselling/:careerId', authMiddleware.authenticateTeacher, CareerController.launchCounselling);
+router.post('/end-counselling/:careerId', authMiddleware.authenticateTeacher, CareerController.endCounselling);
 
 
 
