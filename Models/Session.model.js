@@ -46,7 +46,11 @@ const sessionSchema = new mongoose.Schema({
     quiz: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Quiz'
-    }]
+    }],
+    sessionStarted: {
+        type: Boolean,
+        default: false
+    }
 
 });
 

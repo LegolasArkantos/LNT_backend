@@ -3,7 +3,7 @@ const TeacherCareer = require('../Models/TeacherCareer.model')
 const Student = require('../Models/Student.model');
 
 
-const  getCareer = async (req, res) => {
+const getCareer = async (req, res) => {
 
     try {
       const teacherId = req.user.profileID;
@@ -22,7 +22,7 @@ const  getCareer = async (req, res) => {
 }
 
 
-const  createProfile = async (req, res) => {
+const createProfile = async (req, res) => {
   try {
     const { description, timings } = req.body;
     const teacherId = req.user.profileID;
@@ -57,7 +57,7 @@ const  createProfile = async (req, res) => {
 
 }
 
-const  updateProfile = async (req, res) => {
+const updateProfile = async (req, res) => {
   try {
     const { description, timing } = req.body;
     const teacherId = req.user.profileID;
@@ -81,7 +81,7 @@ const  updateProfile = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
-const  getProfile = async (req, res) => {
+const getProfile = async (req, res) => {
 
 try {
   const teacherId = req.user.profileID;
@@ -99,7 +99,7 @@ try {
 }
 }
 
-const  getCareerTeachers = async (req, res) => {
+const getCareerTeachers = async (req, res) => {
 
   try {
     
@@ -196,6 +196,39 @@ const  getCareerTeachers = async (req, res) => {
     }
 };
 
+const launchCounselling = async (req, res) => {
+  try {
+      const careerId = req.params.careerId;
+      const career = await TeacherCareer.findByIdAndUpdate(careerId, {counsellingSessionStarted: true}, {new: true});
+      console.log(career)
+      if (!career) {
+          return res.status(500).json({message: 'failed to launch counselling'});
+      }
+      console.log("hello")
+      res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+const endCounselling = async (req, res) => {
+  try {
+     const careerId = req.params.careerId;
+      const career = await TeacherCareer.findByIdAndUpdate(careerId, {counsellingSessionStarted: false}, {new: true});
+      if (!career) {
+          return res.status(500).json({message: 'failed to end counselling'});
+      }
+      console.log("hello")
+      res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
 
 module.exports ={
     getCareer,
@@ -206,5 +239,6 @@ module.exports ={
     addCareerTeacher,
     getStudentCareerTeachers,
     getCareerTeacherStudents,
-
+    launchCounselling,
+    endCounselling
 }

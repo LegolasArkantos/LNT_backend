@@ -16,5 +16,9 @@ router.get('/session/:sessionId', authMiddleware.authenticateUser, sessionContro
 
 router.get('/search', authMiddleware.authenticateStudent, sessionController.searchSessionbyQuery);
 
+router.post('/launch-session/:sessionId', authMiddleware.authenticateTeacher, sessionController.launchSession);
+
+router.post('/end-session/:sessionId', authMiddleware.authenticateTeacher, sessionController.endSession);
+
 
 module.exports = router;

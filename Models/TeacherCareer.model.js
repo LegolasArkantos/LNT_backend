@@ -26,6 +26,10 @@ const teacherCareerSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
   }],
+  counsellingSessionStarted: {
+    type: Boolean,
+    default: false
+  }
 });
 
 module.exports = mongoose.model('TeacherCareer', teacherCareerSchema);
