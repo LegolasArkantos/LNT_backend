@@ -2,6 +2,7 @@ const Quiz = require('../Models/Quiz.model');
 const Session = require('../Models/Session.model');
 const QuizSubmission = require('../Models/QuizSubmission.model');
 const mammoth = require('mammoth');
+const Notifications = require('../Models/Notification.model');
 
 const createQuiz = async (req, res) => {
     try {
@@ -13,8 +14,13 @@ const createQuiz = async (req, res) => {
             time: req.body.time,
             questions: req.body.questions
         });
-        const session = await Session.findById(sessionId);
+        const session = await Session.findById(sessionId).populate('students');;
         session.quiz.push(quiz._id);
+        for (const student of session.students) {
+            const notification = await Notifications.findById(student.notificationsID);
+            notification.notifications.push({title: session.subject + ": New Quiz", timestamp: new Date(Date.now()).getHours() + ":" + new Date(Date.now()).getMinutes()});
+            await notification.save();
+        }
         await session.save();
         res.status(200).json(quiz);
     }
