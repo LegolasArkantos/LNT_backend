@@ -41,43 +41,44 @@ const getMyStudents = async (req, res) => {
       }
   
       // Find sessions for the teacher
-      const sessions = await Session.find({ teacher: teacherId });
-  
-      const studentsData = [];
+      const sessions = await Session.find({ teacher: teacherId }).populate('students');
+
+      console.log(sessions)
+      //const studentsData = [];
   
       // Loop through sessions
-      for (const session of sessions) {
-        const sessionData = {
-          teacher: session.teacher,
-          sessionId :session.id,
-          subject: session.subject,
-          startTime: session.startTime,
-          endTime: session.endTime,
-          paymentStatus:session.paymentStatus,
-          status:session.status,
-          sessionPrice:session.sessionPrice,
-          teacherName: session.teacherName,
-          students: [],
-        };
+    //   for (const session of sessions) {
+    //     const sessionData = {
+    //       teacher: session.teacher,
+    //       sessionId :session.id,
+    //       subject: session.subject,
+    //       startTime: session.startTime,
+    //       endTime: session.endTime,
+    //       paymentStatus:session.paymentStatus,
+    //       status:session.status,
+    //       sessionPrice:session.sessionPrice,
+    //       teacherName: session.teacherName,
+    //       students: [],
+    //     };
   
-        // Loop through students of the session
-        for (const studentId of session.students) {
-          const student = await Student.findById(studentId);
+    //     // Loop through students of the session
+    //     for (const studentId of session.students) {
+    //       const student = await Student.findById(studentId);
   
-          if (student) {
-            sessionData.students.push({
-              studentId: student.id,
-              firstName: student.firstName,
-              lastName: student.lastName,
-              profilePicture: student.profilePicture,
+    //       if (student) {
+    //         sessionData.students.push({
+    //           studentId: student.id,
+    //           firstName: student.firstName,
+    //           lastName: student.lastName,
+    //           profilePicture: student.profilePicture,
               
-            });
-          }
-        }
+    //         });
+    //       }
+    //     }
   
-        studentsData.push(sessionData);
-      }
-      res.status(200).json({ studentsData });
+    //     studentsData.push(sessionData);
+    //   }
+      res.status(200).json({ sessions });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Internal Server Error' });
