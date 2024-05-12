@@ -4,7 +4,8 @@ const user = process.env.USER;
 const password = process.env.PASSWORD;
 
 const connectDB = () => {
-    mongoose.connect('mongodb+srv://lnt.830hqw2.mongodb.net/?retryWrites=true&w=majority',
+    try {
+        mongoose.connect('mongodb+srv://lnt.830hqw2.mongodb.net/?retryWrites=true&w=majority',
         {
             user: user,
             pass: password,
@@ -12,6 +13,10 @@ const connectDB = () => {
         }).then(() => {
             console.log("server connected to database...")
         });
+    }
+    catch (error) {
+        console.log(error)
+    }
 }
 
 module.exports = {connectDB};
