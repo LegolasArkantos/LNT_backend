@@ -3,6 +3,7 @@ const Teacher = require('../Models/Teacher.model');
 const Session = require('../Models/Session.model');
 const Assignment = require('../Models/Assignment.model');
 const Submission = require('../Models/Submission.model');
+const Quiz = require('../Models/Quiz.model')
 
 
 
@@ -49,7 +50,8 @@ async function generateStory(req, res) {
 
   async function generateAnalysis(req, res) {
     try {
-        const customMessage = "in paragraph form with full sentences tell me the sessions and the assignment names  the grades of each student in them :";
+        const customMessage = "Do a indepth analysis tell me the students with the worst grades and in what, along with guidelines to help them and other points of interest you noticed.look over both quizes and assigments and also recommend ways to help him. Try to make it a detailed reply"
+        ;
         const teacherId = req.user.profileID;
 
         // Retrieve teacher's data with populated sessions, assignments, and submissions
@@ -67,8 +69,18 @@ async function generateStory(req, res) {
             return res.status(404).json({ error: "Teacher not found" });
         }
 
+         // Retrieve quiz data related to the teacher's sessions
+         const quizData = await Quiz.find({ _id: { $in: teacher.sessions.map(session => session.quiz) } })
+         .populate({
+             path: 'submissions',
+             populate: {
+                 path: 'student',
+                 select: 'firstName lastName' // Select only necessary fields
+             }
+         });
+
         // Format the populated data for passing to the AI model
-        const dataForAI = formatDataForAI(teacher);
+        const dataForAI = formatDataForAI(teacher, quizData);
 
         // Generate AI content
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -84,7 +96,7 @@ async function generateStory(req, res) {
 }
 
 // Function to format data for AI
-function formatDataForAI(teacher) {
+function formatDataForAI(teacher, quizData) {
     // Prepare the data in a suitable format for the AI model
     const data = {
         firstName: teacher.firstName,
@@ -93,9 +105,18 @@ function formatDataForAI(teacher) {
             subject: session.subject,
             assignment: session.assignment.map(assignment => ({
                 title: assignment.title,
+                totalMarks: assignment.marks,
                 submissions: assignment.submissions.map(submission => ({
                     studentName: submission.studentName,
                     grade: submission.grade
+                }))
+            })),
+            quizzes: quizData.filter(quiz => session.quiz.includes(quiz._id)).map(quiz => ({
+                title: quiz.title,
+                totalMarks: quiz.marks,
+                submissions: quiz.submissions.map(submission => ({
+                    studentName: submission.student.firstName + ' ' + submission.student.lastName,
+                    grade: submission.marks
                 }))
             }))
         }))
