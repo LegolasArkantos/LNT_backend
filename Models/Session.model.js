@@ -50,6 +50,10 @@ const sessionSchema = new mongoose.Schema({
     sessionStarted: {
         type: Boolean,
         default: false
+    },
+    sessionDescription: {
+        type: String,
+        required: true
     }
 
 });

@@ -58,9 +58,26 @@ const createSession = async (req, res) => {
 
 const getAvailableSessions = async (req, res) => {
   try {
-    const availableSessions = await Session.find({ status: 'scheduled' });
+    const studentId = req.user.profileID;
+    const matchedSessions = [];
+    const availableSessions = await Session.find({ status: 'scheduled', students: { $nin: [studentId] } }).populate('teacher');
+    const student = await Student.findById(studentId);
 
-    res.status(200).json({ sessions: availableSessions });
+    for (const session of availableSessions) {
+      const teacher = session.teacher;
+      var count = 0;
+      for (var i = 0; i < teacher.personality.length; i++) {
+        if (student.personality[i] === teacher.personality[i]) {
+          count++;
+        }
+      }
+      matchedSessions.push(session);
+    }
+    matchedSessions.sort((a, b) => b.count - a.count);
+    console.log("MATCHED SESSIONSS",matchedSessions)
+    const first10Sessions = matchedSessions.slice(0, 10);
+    console.log("FIRST10 SESSIONSS",first10Sessions)
+    res.status(200).json({ sessions: first10Sessions });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });
