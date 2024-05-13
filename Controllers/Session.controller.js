@@ -66,17 +66,21 @@ const getAvailableSessions = async (req, res) => {
     for (const session of availableSessions) {
       const teacher = session.teacher;
       var count = 0;
+      console.log("personality length", teacher.personality.length)
       for (var i = 0; i < teacher.personality.length; i++) {
         if (student.personality[i] === teacher.personality[i]) {
           count++;
+          console.log(count)
         }
       }
+      console.log(count)
+      console.log(teacher.personality)
+    console.log(student.personality)
       matchedSessions.push(session);
     }
+    
     matchedSessions.sort((a, b) => b.count - a.count);
-    console.log("MATCHED SESSIONSS",matchedSessions)
     const first10Sessions = matchedSessions.slice(0, 10);
-    console.log("FIRST10 SESSIONSS",first10Sessions)
     res.status(200).json({ sessions: first10Sessions });
   } catch (error) {
     console.error(error);
@@ -213,10 +217,13 @@ const searchSessionbyQuery = async (req, res) => {
           count++;
         }
       }
+      console.log("session name:", session.subject)
+      console.log("Student personality", student.personality)
+      console.log("Teacher personality", teacher.personality)
+      console.log("Count:", count)
       matchedSessions.push({count, session});
     }
     matchedSessions.sort((a, b) => b.count - a.count);
-
     res.status(200).json(matchedSessions);
   } catch (error) {
     console.error(error);
