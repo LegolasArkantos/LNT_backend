@@ -22,6 +22,11 @@ const sessionSchema = new mongoose.Schema({
 
     endTime: {type: String,
         required: true,},
+    
+    day: {
+        type: String, 
+        required: true,
+    },
 
     status: {
         type: String,
