@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const createSession = async (req, res) => {
   try {
     const teacherId = req.user.profileID;
-    const { startTime, endTime, status, subject, sessionPrice } = req.body;
+    const { startTime, endTime,  subject, sessionPrice,day, sessionDescription } = req.body;
 
     const teacher = await Teacher.findById(teacherId);
     
@@ -23,10 +23,12 @@ const createSession = async (req, res) => {
       students: [],
       startTime,
       endTime,
-      status,
+      status: 'scheduled',
       paymentStatus: 'pending',
       subject,
       sessionPrice,
+      sessionDescription,
+      day,
     });
 
     await ReviewData.create({
@@ -148,7 +150,7 @@ const joinSession = async (req, res) => {
     try {
       const teacherId = req.user.profileID;
       const sessionId  = req.params.sessionId;
-      const { startTime, endTime, status, paymentStatus, subject, sessionPrice } = req.body;
+      const { startTime, endTime, status, paymentStatus, subject, sessionPrice ,day, sessionDescription} = req.body;
   
       // Find the session
       const session = await Session.findById(sessionId);
@@ -169,7 +171,9 @@ const joinSession = async (req, res) => {
       session.paymentStatus = paymentStatus || session.paymentStatus;
       session.subject = subject || session.subject;
       session.sessionPrice = sessionPrice || session.sessionPrice;
-  
+      session.day = day || session.day;
+      session.sessionDescription = sessionDescription || session.sessionDescription;
+
       await session.save();
   
       res.status(200).json({ message: 'Session updated successfully', session });
