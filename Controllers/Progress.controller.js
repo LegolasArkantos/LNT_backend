@@ -1,6 +1,8 @@
 
 const Progress = require('../Models/progress.model');
 const  Session =require('../Models/Session.model');
+const  Student =require('../Models/Student.model');
+
 
 // GET assignment progress for a teacher
 const getAssignmentData = async (req, res) => {
@@ -52,8 +54,55 @@ const getQuizData = async (req, res) => {
 
 };
 
+const getAssigDataStudent = async (req, res) => {
+
+  try {
+    const studentId = req.user.profileID;
+
+    // Find the student and populate sessions and assignments
+    const student = await Student.findById(studentId)
+      .populate({
+        path: 'sessions',
+        populate: {
+          path: 'assignment',
+          populate: {
+            path: 'submissions',
+            match: { student: studentId } // Only include this student's submissions
+          }
+        }
+      });
+
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Format the data for frontend graphing
+    const sessionsData = student.sessions.map(session => ({
+      sessionId: session._id,
+      subject: session.subject,
+      assignments: session.assignment.map(assignment => ({
+        assignmentId: assignment._id,
+        title: assignment.title,
+        totalMarks: assignment.marks,
+        submissions: assignment.submissions.map(submission => ({
+          submissionId: submission._id,
+          grade: submission.grade
+        }))
+      }))
+    }));
+
+    res.json(sessionsData);
+  } catch (error) {
+    console.error('Error fetching assignments:', error);
+    res.status(500).json({ error: 'Failed to fetch assignments' });
+  }
+}
+
+
+
 module.exports = {
     getAssignmentData,
     getQuizData,
+    getAssigDataStudent,
   };
   
