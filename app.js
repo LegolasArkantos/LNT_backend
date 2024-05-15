@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.local' });
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -10,6 +10,7 @@ const { connectDB } = require("./Configuration/DB.config");
 const app = express();
 
 const PORT = process.env.PORT;
+// app.locals.BASE_URL = process.env.BASE_URL
 
 //middleware
 app.use(express.json());
@@ -22,6 +23,9 @@ app.use(
     credentials: true,
   })
 );
+
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: false }));
 
 connectDB();
 
