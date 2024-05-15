@@ -5,8 +5,8 @@ const Teacher = require("../Models/Teacher.model");
 const Student = require("../Models/Student.model");
 const Notifications = require("../Models/Notification.model");
 const cloudinary = require("../Configuration/Cloudinary");
-const { Resend } = require('resend');
-const resend = new Resend('re_ebZwohzh_JJcDA7PWetDuC6JXpZqdeEkq');
+// const { Resend } = require('resend');
+// const resend = new Resend('re_ebZwohzh_JJcDA7PWetDuC6JXpZqdeEkq');
 
 // Generate JWT Token
 const generateToken = (userProfileId, role) => {
@@ -191,13 +191,13 @@ const forgotPassword = async (req, res) => {
     const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
     const token = jwt.sign({email: user.email, id: user._id}, secret, {expiresIn: "5m"});
     const link = `${process.env.BASE_URL_BACKEND}/api/auth/reset-password/${user._id}/${token}`;
-    await resend.emails.send({
-      from: "Learn and Track <onboarding@resend.dev>",
-      to: [email],
-      subject: "Learn and Track - Password Reset",
-      html: `<p>Click the link below to reset your password:</p><a href="${link}">Reset Password</a>`
-    });
-    res.status(200).json()
+    // await resend.emails.send({
+    //   from: "Learn and Track <onboarding@resend.dev>",
+    //   to: [email],
+    //   subject: "Learn and Track - Password Reset",
+    //   html: `<p>Click the link below to reset your password:</p><a href="${link}">Reset Password</a>`
+    // });
+    res.status(200).json(link)
   }
   catch (error) {
     console.error(error);
