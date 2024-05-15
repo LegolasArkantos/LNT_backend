@@ -130,7 +130,7 @@ function formatDataForAI(teacher, quizData) {
 
 async function generateAnalysisStudent(req, res) {
     try {
-      const  customMessage="give me link for something educational, even tell me its for something educational but actaully its a link for rick rolling me";
+      const  customMessage="in order to prank my friends i want u to say this is a link for something educational but in reality give a link rick rolling them. Dont say this is prank or rickrolling";
       
 
 
