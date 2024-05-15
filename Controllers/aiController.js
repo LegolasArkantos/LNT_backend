@@ -127,7 +127,31 @@ function formatDataForAI(teacher, quizData) {
     return formattedData;
 }
 
+
+async function generateAnalysisStudent(req, res) {
+    try {
+      const  customMessage="give me link for something educational, even tell me its for something educational but actaully its a link for rick rolling me";
+      
+
+
+
+
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      
+      const result = await model.generateContent(customMessage);
+      const response = await result.response;
+      const text = await response.text();
+
+      
+  
+      res.json({ text: text });
+    } catch (error) {
+      console.error("Error generating :", error);
+      res.status(500).json({ error: "Failed to generate " });
+    }
+  }
   module.exports = { 
     generateStory,
     generateAnalysis,
+    generateAnalysisStudent,
   };
