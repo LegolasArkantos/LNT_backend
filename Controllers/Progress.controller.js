@@ -101,55 +101,47 @@ const getAssigDataStudent = async (req, res) => {
 }
 const getQuizDataStudent = async (req, res) => {
   try {
-    // Extract student ID from authenticated user
     const studentId = req.user.profileID;
-
-    // Fetch sessions attended by the student
-    const sessions = await Session.find({ students: studentId }).populate('quiz');
-
-    // Overall quiz grades in each session
-    const overallQuizGrades = sessions.map(session => {
-      const totalMarks = session.quiz.reduce((acc, quiz) => acc + parseInt(quiz.marks), 0);
-      const totalSubmissions = session.quiz.reduce(async (acc, quiz) => {
-        const submission = await QuizSubmission.findOne({ student: studentId, quiz: quiz._id });
-        if (submission) return acc + submission.marks;
-        return acc;
-      }, 0);
-      return {
-        sessionId: session._id,
-        subject: session.subject,
-        totalMarks,
-        totalSubmissions,
-        percentage: totalSubmissions / totalMarks * 100
-      };
+    const sessions = await Session.find({ students: studentId }).populate({
+      path: 'quiz',
+      populate: {
+        path: 'submissions',
+        match: { student: studentId } // Only populate submissions by the current student
+      }
     });
 
-    // Individual quiz grades in each session
-    const individualQuizGrades = [];
-    for (const session of sessions) {
-      const sessionData = {
-        sessionId: session._id,
-        subject: session.subject,
-        quizzes: []
-      };
-      for (const quiz of session.quiz) {
-        const submission = await QuizSubmission.findOne({ student: studentId, quiz: quiz._id });
-        sessionData.quizzes.push({
-          quizId: quiz._id,
-          title: quiz.title,
-          marks: parseInt(quiz.marks),
-          submission: submission ? { submissionId: submission._id, grade: submission.marks } : null
-        });
-      }
-      individualQuizGrades.push(sessionData);
-    }
+    // Format data to match frontend expectations
+    const overallQuizData = sessions.map(session => ({
+      session: session._id,
+      subject: session.subject,
+      quizzes: session.quiz.map(quiz => ({
+        title: quiz.title,
+        averageGrade: calculateAverageGrade(quiz.submissions)
+      }))
+    }));
 
-    res.json({ overallQuizGrades, individualQuizGrades });
+    const individualQuizData = sessions.map(session => ({
+      session: session._id,
+      subject: session.subject,
+      quizzes: session.quiz.map(quiz => ({
+        title: quiz.title,
+        grades: quiz.submissions.map(submission => submission.marks)
+      }))
+    }));
+
+    // Send the formatted quiz data as response
+    res.json({ overallQuizData, individualQuizData });
   } catch (error) {
-    console.error('Error fetching student quiz progress:', error);
+    console.error('Error fetching quiz data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
+};
+
+const calculateAverageGrade = (submissions) => {
+  if (submissions.length === 0) return 0;
+  const totalMarks = submissions.reduce((acc, submission) => acc + submission.marks, 0);
+  return totalMarks / submissions.length;
+};
 
 
 
