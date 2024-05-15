@@ -60,7 +60,7 @@ isApproved: {
   default: false, 
 },
 
-personality: [String],
+personality: [Number],
 
 careerCounselling: {
   type : Boolean,
