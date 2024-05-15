@@ -5,6 +5,8 @@ const Teacher = require("../Models/Teacher.model");
 const Student = require("../Models/Student.model");
 const Notifications = require("../Models/Notification.model");
 const cloudinary = require("../Configuration/Cloudinary");
+const { Resend } = require('resend');
+const resend = new Resend('re_ebZwohzh_JJcDA7PWetDuC6JXpZqdeEkq');
 
 // Generate JWT Token
 const generateToken = (userProfileId, role) => {
@@ -179,9 +181,79 @@ const logout = async (req, res) => {
   return res.status(200).send("Logged out successfully");
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const user = await User.findOne({email});
+    if (!user) {
+      return res.status(404).json({message: "An account with this email does not exist!"})
+    }
+    const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
+    const token = jwt.sign({email: user.email, id: user._id}, secret, {expiresIn: "5m"});
+    const link = `${process.env.BASE_URL_BACKEND}/api/auth/reset-password/${user._id}/${token}`;
+    await resend.emails.send({
+      from: "Learn and Track <onboarding@resend.dev>",
+      to: [email],
+      subject: "Learn and Track - Password Reset",
+      html: `<p>Click the link below to reset your password:</p><a href="${link}">Reset Password</a>`
+    });
+    res.status(200).json()
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error, Please Try again" });
+  }
+}
+
+const resetPasswordVerify = async (req, res) => {
+  try {
+    const {id, token} = req.params;
+    console.log(req.params)
+    const user = await User.findOne({_id: id});
+    if (!user) {
+      return res.status(404).json({message: "An account with this email does not exist!"})
+    }
+    const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
+    const verify = jwt.verify(token, secret);
+    if (verify) {
+      console.log(process.env.BASE_URL_FRONTEND)
+      res.render("passwordReset", {email: verify.email,status: "Not Verified", BASE_URL_FRONTEND: process.env.BASE_URL_FRONTEND});
+    }
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error, Please Try again" });
+  }
+}
+
+const resetPassword = async (req, res) => {
+  try {
+    const {id, token} = req.params;
+    const user = await User.findOne({_id: id});
+    const {password} = req.body
+    if (!user) {
+      return res.status(404).json({message: "An account with this email does not exist!"})
+    }
+    const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
+    const verify = jwt.verify(token, secret);
+    if (verify) {
+      const encryptedPassword = await bcrypt.hash(password, 10);
+      await User.findByIdAndUpdate(id, {password: encryptedPassword});
+      res.render("passwordReset", {email: verify.email,status: "Verified", BASE_URL_FRONTEND: process.env.BASE_URL_FRONTEND});
+    }
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error, Please Try again" });
+  }
+}
+
 module.exports = {
   signup,
   login,
   getAccessToken,
   logout,
+  forgotPassword,
+  resetPasswordVerify,
+  resetPassword
 };
