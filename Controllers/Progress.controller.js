@@ -2,6 +2,8 @@
 const Progress = require('../Models/progress.model');
 const  Session =require('../Models/Session.model');
 const  Student =require('../Models/Student.model');
+const  Quiz =require('../Models/Quiz.model');
+const  QuizSubmission =require('../Models/QuizSubmission.model');
 
 
 // GET assignment progress for a teacher
@@ -97,6 +99,53 @@ const getAssigDataStudent = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch assignments' });
   }
 }
+const getQuizDataStudent = async (req, res) => {
+  try {
+    // Extract student ID from authenticated user
+    const studentId = req.user.profileID;
+
+    // Fetch sessions attended by the student
+    const sessions = await Session.find({ students: studentId }).lean().populate('quiz');
+    // Overall quiz grades in each session
+    const overallQuizGrades = sessions.map(session => {
+      const totalMarks = session.quiz.reduce((acc, quiz) => acc + parseInt(quiz.marks), 0);
+      const totalSubmissions = session.quiz.reduce(async (acc, quiz) => {
+        const submission = await QuizSubmission.findOne({ student: studentId, quiz: quiz._id });
+        if (submission) return acc + submission.marks;
+        return acc;
+      }, 0);
+      return {
+        sessionId: session._id,
+        subject: session.subject,
+        totalMarks,
+        totalSubmissions,
+        percentage: totalSubmissions / totalMarks * 100
+      };
+    });
+
+    // Individual quiz grades in each session
+    const individualQuizGrades = sessions.map(session => {
+      return {
+        sessionId: session._id,
+        subject: session.subject,
+        quizzes: session.quiz.map(quiz => {
+          return {
+            quizId: quiz._id,
+            title: quiz.title,
+            marks: parseInt(quiz.marks),
+            submission: QuizSubmission.findOne({ student: studentId, quiz: quiz._id })
+          };
+        })
+      };
+    });
+
+    res.json({ overallQuizGrades, individualQuizGrades });
+  } catch (error) {
+    console.error('Error fetching student quiz progress:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+
+}
 
 
 
@@ -104,5 +153,6 @@ module.exports = {
     getAssignmentData,
     getQuizData,
     getAssigDataStudent,
+    getQuizDataStudent,
   };
   
