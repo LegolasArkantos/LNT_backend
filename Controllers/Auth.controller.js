@@ -5,6 +5,7 @@ const Teacher = require("../Models/Teacher.model");
 const Student = require("../Models/Student.model");
 const Notifications = require("../Models/Notification.model");
 const cloudinary = require("../Configuration/Cloudinary");
+const nodemailer = require('nodemailer')
 // const { Resend } = require('resend');
 // const resend = new Resend('re_ebZwohzh_JJcDA7PWetDuC6JXpZqdeEkq');
 
@@ -197,7 +198,40 @@ const forgotPassword = async (req, res) => {
     //   subject: "Learn and Track - Password Reset",
     //   html: `<p>Click the link below to reset your password:</p><a href="${link}">Reset Password</a>`
     // });
-    res.status(200).json(link)
+    const transporter = nodemailer.createTransport(
+      {
+        host: "smtp-mail.outlook.com", // hostname
+        secureConnection: false, // TLS requires secureConnection to be false
+        port: 587, // port for secure SMTP
+        tls: {
+           ciphers:'SSLv3'
+        },
+          auth:{
+              user: process.env.MAIL_EMAIL,
+              pass: process.env.MAIL_PASSWORD
+          }
+      }
+    );
+    const mailOptions = {
+      from: `Learn and Track <${process.env.MAIL_EMAIL}>`,
+      to: email,
+      subject: `Password Reset: Learn and Track`,
+      html: `
+        <p>Hello,</p>
+        <p>You have requested to reset your password for Learn and Track. Click the link below to reset it:</p>
+        <a href="${link}">Reset Password</a>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+        <p>Best regards,<br/>Learn and Track Team</p>
+      `
+    };
+    transporter.sendMail(mailOptions, function(error, info){
+      if(error){
+          return console.log(error);
+      }
+  
+      console.log('Message sent: ' + info.response);
+  });
+    res.status(200).json({ message: "An email to reset the password has been sent to you!" })
   }
   catch (error) {
     console.error(error);
