@@ -19,7 +19,7 @@ app.use(cookieParser());
 console.log(process.env.FRONTEND_URL)
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
@@ -72,7 +72,7 @@ const server = app.listen(PORT, () => {
 
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL,
+      origin: "http://localhost:3000",
     },
   });
 
