@@ -147,11 +147,14 @@ const getQuizDataStudent = async (req, res) => {
         }
     });
 
+    // Filter out sessions with no quizzes
+    const filteredSessions = sessions.filter(session => session.quiz.length > 0);
+
     // Format data to match frontend expectations
-    const quizData = sessions.map(session => {
+    const quizData = filteredSessions.map(session => {
         const sessionQuizzes = session.quiz.map(quiz => {
             const studentSubmissions = quiz.submissions.filter(submission => submission.student.toString() === studentId);
-            const totalMarks = quiz.marks;
+            const totalMarks = parseInt(quiz.marks);
             const averageMarks = studentSubmissions.length > 0 
                 ? studentSubmissions.reduce((acc, submission) => acc + submission.marks, 0) / studentSubmissions.length 
                 : 0;
