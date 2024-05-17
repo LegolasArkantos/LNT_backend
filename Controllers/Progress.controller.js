@@ -100,41 +100,91 @@ const getAssigDataStudent = async (req, res) => {
   }
 }
 const getQuizDataStudent = async (req, res) => {
+  // try {
+  //   const studentId = req.user.profileID;
+  //   const sessions = await Session.find({ students: studentId }).populate({
+  //     path: 'quiz',
+  //     populate: {
+  //       path: 'submissions',
+  //       match: { student: studentId } // Only populate submissions by the current student
+  //     }
+  //   });
+
+  //   // Format data to match frontend expectations
+  //   const overallQuizData = sessions.map(session => ({
+  //     session: session._id,
+  //     subject: session.subject,
+  //     quizzes: session.quiz.map(quiz => ({
+  //       title: quiz.title,
+  //       averageGrade: calculateAverageGrade(quiz.submissions)
+  //     }))
+  //   }));
+
+  //   const individualQuizData = sessions.map(session => ({
+  //     session: session._id,
+  //     subject: session.subject,
+  //     quizzes: session.quiz.map(quiz => ({
+  //       title: quiz.title,
+  //       grades: quiz.submissions.map(submission => submission.marks)
+  //     }))
+  //   }));
+
+  //   // Send the formatted quiz data as response
+  //   res.json({ overallQuizData, individualQuizData });
+  // } catch (error) {
+  //   console.error('Error fetching quiz data:', error);
+  //   res.status(500).json({ error: 'Internal server error' });
+  // }
+
   try {
     const studentId = req.user.profileID;
+
     const sessions = await Session.find({ students: studentId }).populate({
-      path: 'quiz',
-      populate: {
-        path: 'submissions',
-        match: { student: studentId } // Only populate submissions by the current student
-      }
+        path: 'quiz',
+        populate: {
+            path: 'submissions',
+            match: { student: studentId }
+        }
     });
 
-    // Format data to match frontend expectations
-    const overallQuizData = sessions.map(session => ({
-      session: session._id,
-      subject: session.subject,
-      quizzes: session.quiz.map(quiz => ({
-        title: quiz.title,
-        averageGrade: calculateAverageGrade(quiz.submissions)
-      }))
-    }));
+    // Filter out sessions with no quizzes
+    const filteredSessions = sessions.filter(session => session.quiz.length > 0);
 
-    const individualQuizData = sessions.map(session => ({
-      session: session._id,
-      subject: session.subject,
-      quizzes: session.quiz.map(quiz => ({
-        title: quiz.title,
-        grades: quiz.submissions.map(submission => submission.marks)
-      }))
-    }));
+    // Format data to match frontend expectations
+    const quizData = filteredSessions.map(session => {
+        const sessionQuizzes = session.quiz.map(quiz => {
+            const studentSubmissions = quiz.submissions.filter(submission => submission.student.toString() === studentId);
+            const totalMarks = parseInt(quiz.marks);
+            const averageMarks = studentSubmissions.length > 0 
+                ? studentSubmissions.reduce((acc, submission) => acc + submission.marks, 0) / studentSubmissions.length 
+                : 0;
+
+            return {
+                title: quiz.title,
+                averageMarks,
+                submissions: studentSubmissions.map(submission => submission.marks),
+                totalMarks
+            };
+        });
+
+        const sessionAverage = sessionQuizzes.length > 0 
+            ? sessionQuizzes.reduce((acc, quiz) => acc + quiz.averageMarks, 0) / sessionQuizzes.length 
+            : 0;
+
+        return {
+            sessionId: session._id,
+            subject: session.subject,
+            sessionAverage,
+            quizzes: sessionQuizzes
+        };
+    });
 
     // Send the formatted quiz data as response
-    res.json({ overallQuizData, individualQuizData });
-  } catch (error) {
+    res.json({ quizData });
+} catch (error) {
     console.error('Error fetching quiz data:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
+}
 };
 
 const calculateAverageGrade = (submissions) => {
