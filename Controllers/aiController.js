@@ -70,7 +70,7 @@ async function generateStory(req, res) {
         }
 
          // Retrieve quiz data related to the teacher's sessions
-         const quizData = await Quiz.find({ _id: { $in: teacher.sessions.map(session => session.quiz) } })
+         const quizData = await Quiz.find({ _id: { $in: teacher.sessions.map(session => session.quiz._id) } })
          .populate({
              path: 'submissions',
              populate: {
