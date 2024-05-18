@@ -130,26 +130,78 @@ function formatDataForAI(teacher, quizData) {
 
 async function generateAnalysisStudent(req, res) {
     try {
-      const  customMessage="in order to prank my friends i want u to say this is a link for something educational but in reality give a link rick rolling them. Dont say this is prank or rickrolling";
-      
+        const customMessage = "Do an in-depth analysis of the student's performance in assignments and quizzes. Highlight areas of weakness, provide suggestions for improvement, and recommend resources and youtube links for further study. Provide detailed feedback. important rules: never say students id, use his name. Always provde a youtube link or some type link";
+        const studentId = req.user.profileID;
 
+        // Retrieve student's sessions, assignments, and submissions
+        const studentSessions = await Session.find({ students: studentId })
+            .populate({
+                path: 'assignment',
+                populate: {
+                    path: 'submissions',
+                    match: { student: studentId }
+                }
+            })
+            .populate({
+                path: 'quiz',
+                populate: {
+                    path: 'submissions',
+                    match: { student: studentId }
+                }
+            });
 
+        if (!studentSessions || studentSessions.length === 0) {
+            return res.status(404).json({ error: "No sessions found for the student" });
+        }
 
+        // Format the data for passing to the AI model
+        const dataForAI = formatDataForAIStudent(studentSessions, studentId);
 
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      
-      const result = await model.generateContent(customMessage);
-      const response = await result.response;
-      const text = await response.text();
+        // Generate AI content
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent(customMessage + " " + dataForAI);
+        const response = await result.response;
+        const text = await response.text();
 
-      
-  
-      res.json({ text: text });
+        res.json({ text: text });
     } catch (error) {
-      console.error("Error generating :", error);
-      res.status(500).json({ error: "Failed to generate " });
+        console.error("Error generating student analysis:", error);
+        res.status(500).json({ error: "Failed to generate student analysis" });
     }
   }
+
+
+  function formatDataForAIStudent(sessions, studentId) {
+    const data = {
+        studentId: studentId,
+        sessions: sessions.map(session => ({
+            subject: session.subject,
+            assignments: session.assignment.map(assignment => ({
+                title: assignment.title,
+                totalMarks: assignment.marks,
+                submissions: assignment.submissions
+                    .filter(submission => submission.student.toString() === studentId)
+                    .map(submission => ({
+                        studentName: submission.studentName,
+                        grade: submission.grade
+                    }))
+            })),
+            quizzes: session.quiz.map(quiz => ({
+                title: quiz.title,
+                totalMarks: quiz.marks,
+                submissions: quiz.submissions
+                    .filter(submission => submission.student.toString() === studentId)
+                    .map(submission => ({
+                        grade: submission.marks
+                    }))
+            }))
+        }))
+    };
+
+    // Convert the data to JSON string for passing to the AI model
+    const formattedData = JSON.stringify(data);
+    return formattedData;
+}
   module.exports = { 
     generateStory,
     generateAnalysis,
