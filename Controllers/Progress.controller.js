@@ -6,23 +6,39 @@ const  Quiz =require('../Models/Quiz.model');
 const  QuizSubmission =require('../Models/QuizSubmission.model');
 
 
-// GET assignment progress for a teacher
 const getAssignmentData = async (req, res) => {
-    try {
-        const profileID = req.user.profileID;
+  try {
+    const teacherId = req.user.profileID;
 
-
-        const progress = await Progress.findOne({ teacher: profileID });
-
-        if (!progress) {
-            return res.status(404).json({ message: 'Progress not found for this teacher' });
+    // Find the teacher's sessions and populate assignments
+    const sessions = await Session.find({ teacher: teacherId })
+      .populate({
+        path: 'assignment',
+        populate: {
+          path: 'submissions'
         }
+      });
 
-        res.status(200).json({ sessions: progress.sessions });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
+    // Format the data for frontend graphing
+    const formattedSessions = sessions.map(session => ({
+      sessionId: session._id,
+      subject: session.subject,
+      assignments: session.assignment.map(assignment => ({
+        assignmentId: assignment._id,
+        title: assignment.title,
+        totalMarks: assignment.marks,
+        submissions: assignment.submissions.map(submission => ({
+          submissionId: submission._id,
+          grade: submission.grade
+        }))
+      }))
+    }));
+
+    res.json({ sessions: formattedSessions });
+  } catch (error) {
+    console.error('Error fetching assignments:', error);
+    res.status(500).json({ error: 'Failed to fetch assignments' });
+  }
 };
 
 
