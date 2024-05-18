@@ -8,37 +8,20 @@ const  QuizSubmission =require('../Models/QuizSubmission.model');
 
 const getAssignmentData = async (req, res) => {
   try {
-    const teacherId = req.user.profileID;
+    const profileID = req.user.profileID;
 
-    // Find the teacher's sessions and populate assignments
-    const sessions = await Session.find({ teacher: teacherId })
-      .populate({
-        path: 'assignment',
-        populate: {
-          path: 'submissions'
-        }
-      });
 
-    // Format the data for frontend graphing
-    const formattedSessions = sessions.map(session => ({
-      sessionId: session._id,
-      subject: session.subject,
-      assignments: session.assignment.map(assignment => ({
-        assignmentId: assignment._id,
-        title: assignment.title,
-        totalMarks: assignment.marks,
-        submissions: assignment.submissions.map(submission => ({
-          submissionId: submission._id,
-          grade: submission.grade
-        }))
-      }))
-    }));
+    const progress = await Progress.findOne({ teacher: profileID });
 
-    res.json({ sessions: formattedSessions });
-  } catch (error) {
-    console.error('Error fetching assignments:', error);
-    res.status(500).json({ error: 'Failed to fetch assignments' });
-  }
+    if (!progress) {
+        return res.status(404).json({ message: 'Progress not found for this teacher' });
+    }
+
+    res.status(200).json({ sessions: progress.sessions });
+} catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+}
 };
 
 
@@ -116,41 +99,7 @@ const getAssigDataStudent = async (req, res) => {
   }
 }
 const getQuizDataStudent = async (req, res) => {
-  // try {
-  //   const studentId = req.user.profileID;
-  //   const sessions = await Session.find({ students: studentId }).populate({
-  //     path: 'quiz',
-  //     populate: {
-  //       path: 'submissions',
-  //       match: { student: studentId } // Only populate submissions by the current student
-  //     }
-  //   });
-
-  //   // Format data to match frontend expectations
-  //   const overallQuizData = sessions.map(session => ({
-  //     session: session._id,
-  //     subject: session.subject,
-  //     quizzes: session.quiz.map(quiz => ({
-  //       title: quiz.title,
-  //       averageGrade: calculateAverageGrade(quiz.submissions)
-  //     }))
-  //   }));
-
-  //   const individualQuizData = sessions.map(session => ({
-  //     session: session._id,
-  //     subject: session.subject,
-  //     quizzes: session.quiz.map(quiz => ({
-  //       title: quiz.title,
-  //       grades: quiz.submissions.map(submission => submission.marks)
-  //     }))
-  //   }));
-
-  //   // Send the formatted quiz data as response
-  //   res.json({ overallQuizData, individualQuizData });
-  // } catch (error) {
-  //   console.error('Error fetching quiz data:', error);
-  //   res.status(500).json({ error: 'Internal server error' });
-  // }
+  
 
   try {
     const studentId = req.user.profileID;
@@ -203,11 +152,6 @@ const getQuizDataStudent = async (req, res) => {
 }
 };
 
-const calculateAverageGrade = (submissions) => {
-  if (submissions.length === 0) return 0;
-  const totalMarks = submissions.reduce((acc, submission) => acc + submission.marks, 0);
-  return totalMarks / submissions.length;
-};
 
 
 
