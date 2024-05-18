@@ -67,6 +67,7 @@ const signup = async (req, res) => {
         aboutMe,
         educationalCredential,
         educationalLevel,
+        credentialFiles
       } = req.body;
 
       if (!profilePicture) {
@@ -83,6 +84,7 @@ const signup = async (req, res) => {
 
       if (role === "Teacher") {
         profileData.educationalCredential = educationalCredential;
+        profileData.credentialFiles = credentialFiles;
       } else if (role === "Student") {
         profileData.educationalLevel = educationalLevel;
       }
