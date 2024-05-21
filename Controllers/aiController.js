@@ -9,7 +9,7 @@ const Quiz = require('../Models/Quiz.model')
 
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-
+const API_KEY = "AIzaSyBVmpDxr8P0sIf4E6vdm3F1FQ7Dna4xwcI";
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
 async function generateStory(req, res) {
@@ -126,11 +126,12 @@ function formatDataForAI(teacher, quizData) {
     const formattedData = JSON.stringify(data);
     return formattedData;
 }
-
-
+const https = require('https');
 async function generateAnalysisStudent(req, res) {
     try {
-        const customMessage = "Do an in-depth analysis of the student's performance in assignments and quizzes. Highlight areas of weakness, provide suggestions for improvement, and recommend resources and youtube links for further study. Provide detailed feedback. important rules: never say students id, use his name. Always provde a youtube link or some type link";
+        
+        const customMessage = "Do an in-depth analysis of the student's performance in assignments and quizzes. Highlight areas of weakness, provide suggestions for improvement, and recommend resources and youtube links for further study. Provide detailed feedback. important rules: never say students id, use his name. The youtube link should be of a video, not a channel";
+        const customMessage1="i will prvode u will student data, your job is to identify topics he needs help in and then give me list of topics he needs help in so i can query those and get youtube links. example output should:(topic/another topic/and so on). the / is necceasry to separaate dif video suggestions . only give me the suggestions , do not tell me name or any other info about student.try to make the topics suggestions as discriptive as possible to help youtbe algorithm give better suggestions . Do not give back suggestions called quiz 1 , assigment 1 or anything similair: "
         const studentId = req.user.profileID;
 
         // Retrieve student's sessions, assignments, and submissions
@@ -156,19 +157,81 @@ async function generateAnalysisStudent(req, res) {
 
         // Format the data for passing to the AI model
         const dataForAI = formatDataForAIStudent(studentSessions, studentId);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         // Generate AI content
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const result = await model.generateContent(customMessage + " " + dataForAI);
         const response = await result.response;
         const text = await response.text();
 
-        res.json({ text: text });
+        const result3 = await model.generateContent(customMessage1 + " " + dataForAI);
+        const response3 = await result3.response;
+        const text3 = await response3.text();
+        console.log(text3)
+        const querySuggestions = text3.split('/').map(suggestion => suggestion.trim()); // Split suggestions
+
+        const youtubeVideos = [];
+        for (const query of querySuggestions) {
+            const videos = await searchYouTube(query);
+            youtubeVideos.push(...videos);
+        }
+        console.log(youtubeVideos)
+
+
+
+      
+        res.json({ text: text , youtubeVideos: youtubeVideos});
     } catch (error) {
         console.error("Error generating student analysis:", error);
         res.status(500).json({ error: "Failed to generate student analysis" });
     }
   }
+
+
+  async function searchYouTube(query) {
+    // Fetch video information directly using the videos.list method
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(query)}&key=${API_KEY}`;
+    
+    return new Promise((resolve, reject) => {
+      https.get(url, (response) => {
+        let data = '';
+        
+        // A chunk of data has been received
+        response.on('data', (chunk) => {
+          data += chunk;
+        });
+        
+        // The whole response has been received
+        response.on('end', () => {
+          try {
+            const jsonData = JSON.parse(data);
+            const items = jsonData.items;
+            console.log(jsonData)
+
+            let videos = [];
+            
+            // Extract video information from the response
+            for (const item of items) {
+              if (item.id) {
+                videos.push({
+                  title: item.snippet.title,
+                  videoId: item.id,
+                  url: `https://www.youtube.com/watch?v=${item.id}`
+                });
+              }
+            }
+            
+            resolve(videos);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }).on('error', (error) => {
+        reject(error);
+      });
+    });
+}
+  
 
 
   function formatDataForAIStudent(sessions, studentId) {
