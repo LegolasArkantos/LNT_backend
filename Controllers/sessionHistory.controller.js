@@ -25,9 +25,31 @@ const DisplayTeacherSessionsCompleted = async (req, res) => {
 
 }
 
+const DisplayStudentSessionsCompleted = async (req, res) => {
+    try {
+        // Get student id from the request
+        const studentId = req.user.profileID;
+    
+        // Find completed sessions for the student
+        const completedSessions = await Session.find({
+          students: studentId,
+          status: 'completed'
+        }).populate('teacher', '_id');
+    
+        res.json({ sessions: completedSessions });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+
+
+
+
+}
+    
 
 
 module.exports = {
-
-    DisplayTeacherSessionsCompleted
+    DisplayStudentSessionsCompleted,
+    DisplayTeacherSessionsCompleted,
 }
