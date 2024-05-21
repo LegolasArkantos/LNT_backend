@@ -20,5 +20,6 @@ router.post('/launch-session/:sessionId', authMiddleware.authenticateTeacher, se
 
 router.post('/end-session/:sessionId', authMiddleware.authenticateTeacher, sessionController.endSession);
 
+router.patch('/session-completed/:sessionId', authMiddleware.authenticateTeacher, sessionController.sessionCompleted);
 
 module.exports = router;
