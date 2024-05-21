@@ -30,7 +30,7 @@ const getProfile = async (req, res) => {
 
 
 
-const getMyStudents = async (req, res) => {
+const getMySessions = async (req, res) => {
     try {
       const teacherId = req.user.profileID;
   
@@ -41,7 +41,7 @@ const getMyStudents = async (req, res) => {
       }
   
       // Find sessions for the teacher
-      const sessions = await Session.find({ teacher: teacherId }).populate('students');
+      const sessions = await Session.find({ teacher: teacherId, status: "scheduled" }).populate('students');
 
       console.log(sessions)
       //const studentsData = [];
@@ -228,7 +228,7 @@ const getTeacher = async (req, res) => {
 
 module.exports = {
     getProfile,
-    getMyStudents,
+    getMySessions,
     updateProfile,
     getSpecificSession,
     getStudent,

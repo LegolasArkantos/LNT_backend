@@ -9,4 +9,10 @@ router.patch("/approve-teacher/:teacherId", authMiddleware.authenticateAdmin, ad
 
 router.patch("/reject-teacher/:teacherId", authMiddleware.authenticateAdmin, adminController.unapproveTeacher);
 
+router.get("/un-approved-sessions", authMiddleware.authenticateAdmin, adminController.getUnapprovedSessions);
+
+router.patch("/approve-session/:sessionId", authMiddleware.authenticateAdmin, adminController.approveSession);
+
+router.patch("/reject-session/:sessionId", authMiddleware.authenticateAdmin, adminController.unapproveSession);
+
 module.exports = router;

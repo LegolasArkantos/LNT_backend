@@ -195,7 +195,7 @@ const getMySessions = async (req, res) => {
         const studentId  = req.user.profileID;
 
         // Find sessions for the student and populate the 'students' field
-        const sessions = await Session.find({ students: studentId }).populate('students');
+        const sessions = await Session.find({ students: studentId, status: "scheduled" }).populate('students');
 
         if (!sessions || sessions.length === 0) {
             return res.status(404).json({ message: 'No sessions found for this student' });
