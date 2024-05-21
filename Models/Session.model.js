@@ -30,7 +30,7 @@ const sessionSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ['scheduled', 'completed', 'canceled']
+        enum: ['scheduled', 'completed', 'canceled', 'In Review']
     },
 
     paymentStatus: {
@@ -59,6 +59,16 @@ const sessionSchema = new mongoose.Schema({
     sessionDescription: {
         type: String,
         required: true
+    },
+    sessionCounter: {
+        currentCount: {
+            type: Number,
+            default: 0
+        },
+        sessionCount: {
+            type: Number,
+            required: true
+        }
     }
 
 });

@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const createSession = async (req, res) => {
   try {
     const teacherId = req.user.profileID;
-    const { startTime, endTime,  subject, sessionPrice,day, sessionDescription } = req.body;
+    const { startTime, endTime,  subject, sessionPrice,day, sessionDescription, sessionCount } = req.body;
 
     const teacher = await Teacher.findById(teacherId);
     
@@ -23,12 +23,15 @@ const createSession = async (req, res) => {
       students: [],
       startTime,
       endTime,
-      status: 'scheduled',
+      status: 'In Review',
       paymentStatus: 'pending',
       subject,
       sessionPrice,
       sessionDescription,
       day,
+      sessionCounter: { // Use an embedded object here
+        sessionCount // Correct assignment of sessionCount
+      }
     });
 
     await ReviewData.create({
@@ -211,7 +214,7 @@ const searchSessionbyQuery = async (req, res) => {
   }
 
   try {
-    const sessions = await Session.find({ subject: { $regex: searchValue, $options: 'i' } }).populate('teacher students assignment');
+    const sessions = await Session.find({ subject: { $regex: searchValue, $options: 'i' }, status: "scheduled" }).populate('teacher students assignment');
     const student = await Student.findById(profileID);
     for (const session of sessions) {
       const teacher = session.teacher;
@@ -255,12 +258,28 @@ const launchSession = async (req, res) => {
 const endSession = async (req, res) => {
   try {
       const sessionId = req.params.sessionId;
-      const session = await Session.findByIdAndUpdate(sessionId, {sessionStarted: false}, {new: true});
+      const session = await Session.findByIdAndUpdate(sessionId, {sessionStarted: false, $inc: { 'sessionCounter.currentCount': 1 }}, {new: true});
       if (!session) {
           return res.status(500).json({message: 'failed to end session'});
       }
       console.log("hello")
       res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+const sessionCompleted = async (req, res) => {
+  try {
+    const sessionId = req.params.sessionId;
+    const session = await Session.findByIdAndUpdate(sessionId, {status: "completed"}, {new: true});
+    if (!session) {
+        return res.status(500).json({message: 'failed to finish course'});
+    }
+    console.log("hello")
+    res.sendStatus(200);
   }
   catch (error) {
     console.error(error);
@@ -276,5 +295,6 @@ module.exports = {
     getSpecificSession,
     searchSessionbyQuery,
     launchSession,
-    endSession
+    endSession,
+    sessionCompleted
 };
