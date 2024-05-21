@@ -9,7 +9,7 @@ const Quiz = require('../Models/Quiz.model')
 
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const API_KEY = "AIzaSyCVEMe43OboiRjQ4cuwZiixuptB83L8Jww";
+const API_KEY = "AIzaSyBVmpDxr8P0sIf4E6vdm3F1FQ7Dna4xwcI";
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
 async function generateStory(req, res) {
@@ -189,7 +189,8 @@ async function generateAnalysisStudent(req, res) {
 
 
   async function searchYouTube(query) {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(query)}&key=${API_KEY}`;
+    // Fetch video information directly using the videos.list method
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(query)}&key=${API_KEY}`;
     
     return new Promise((resolve, reject) => {
       https.get(url, (response) => {
@@ -205,20 +206,18 @@ async function generateAnalysisStudent(req, res) {
           try {
             const jsonData = JSON.parse(data);
             const items = jsonData.items;
+            console.log(jsonData)
 
             let videos = [];
-            let count = 0;
             
-            // Extract video titles and IDs from the response
+            // Extract video information from the response
             for (const item of items) {
-              if (count >= 2) break; // Maximum of two videos per query
-              if (item.id.videoId) {
+              if (item.id) {
                 videos.push({
                   title: item.snippet.title,
-                  videoId: item.id.videoId,
-                  url: `https://www.youtube.com/watch?v=${item.id.videoId}`
+                  videoId: item.id,
+                  url: `https://www.youtube.com/watch?v=${item.id}`
                 });
-                count++;
               }
             }
             
@@ -232,7 +231,6 @@ async function generateAnalysisStudent(req, res) {
       });
     });
 }
-
   
 
 
