@@ -4,12 +4,12 @@ const Session = require('../Models/Session.model');
 const Assignment = require('../Models/Assignment.model');
 const Submission = require('../Models/Submission.model');
 const Quiz = require('../Models/Quiz.model')
-
+require('dotenv').config();
 
 
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const API_KEY = "AIzaSyBVmpDxr8P0sIf4E6vdm3F1FQ7Dna4xwcI";
+const API_KEY = process.env.API_KEY_Y;
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
 async function generateStory(req, res) {
@@ -131,7 +131,7 @@ async function generateAnalysisStudent(req, res) {
     try {
         
         const customMessage = "Do an in-depth analysis of the student's performance in assignments and quizzes. Highlight areas of weakness, provide suggestions for improvement, and recommend resources and youtube links for further study. Provide detailed feedback. important rules: never say students id, use his name. The youtube link should be of a video, not a channel";
-        const customMessage1="i will prvode u will student data, your job is to identify topics he needs help in and then give me list of topics he needs help in so i can query those and get youtube links. example output should:(topic/another topic/and so on). the / is necceasry to separaate dif video suggestions . only give me the suggestions , do not tell me name or any other info about student.try to make the topics suggestions as discriptive as possible to help youtbe algorithm give better suggestions . Do not give back suggestions called quiz 1 , assigment 1 or anything similair: "
+        const customMessage1="i will prvode u will student data, your job is to identify topics he needs help in and then give me 2 of topics he needs help in most so i can query those and get youtube links. example output should:(topic/another topic). the / is necceasry to separaate dif video suggestions . only give me the suggestions , do not tell me name or any other info about student.try to make the topics suggestions as discriptive as possible to help youtbe algorithm give better suggestions . Do not give back suggestions called quiz 1 , assigment 1 or anything similair:  "
         const studentId = req.user.profileID;
 
         // Retrieve student's sessions, assignments, and submissions
@@ -168,19 +168,15 @@ async function generateAnalysisStudent(req, res) {
         const response3 = await result3.response;
         const text3 = await response3.text();
         console.log(text3)
-        const querySuggestions = text3.split('/').map(suggestion => suggestion.trim()); // Split suggestions
 
-        const youtubeVideos = [];
-        for (const query of querySuggestions) {
-            const videos = await searchYouTube(query);
-            youtubeVideos.push(...videos);
-        }
-        console.log(youtubeVideos)
+        const topics = text3.split(' / ').map(topic => topic.trim());
+        const videos = await searchYouTube(topics);
+        
 
 
 
       
-        res.json({ text: text , youtubeVideos: youtubeVideos});
+        res.json({ text: text , youtubeVideos: videos});
     } catch (error) {
         console.error("Error generating student analysis:", error);
         res.status(500).json({ error: "Failed to generate student analysis" });
@@ -188,50 +184,49 @@ async function generateAnalysisStudent(req, res) {
   }
 
 
-  async function searchYouTube(query) {
-    // Fetch video information directly using the videos.list method
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(query)}&key=${API_KEY}`;
+  async function searchYouTube(queries) {
+    const combinedQuery = queries.join('|');
+    console.log(combinedQuery)
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(combinedQuery)}&key=${API_KEY}`;
     
     return new Promise((resolve, reject) => {
-      https.get(url, (response) => {
-        let data = '';
-        
-        // A chunk of data has been received
-        response.on('data', (chunk) => {
-          data += chunk;
-        });
-        
-        // The whole response has been received
-        response.on('end', () => {
-          try {
-            const jsonData = JSON.parse(data);
-            const items = jsonData.items;
-            console.log(jsonData)
-
-            let videos = [];
+        https.get(url, (response) => {
+            let data = '';
             
-            // Extract video information from the response
-            for (const item of items) {
-              if (item.id) {
-                videos.push({
-                  title: item.snippet.title,
-                  videoId: item.id,
-                  url: `https://www.youtube.com/watch?v=${item.id}`
-                });
-              }
-            }
+            // A chunk of data has been received
+            response.on('data', (chunk) => {
+                data += chunk;
+            });
             
-            resolve(videos);
-          } catch (error) {
+            // The whole response has been received
+            response.on('end', () => {
+                try {
+                    const jsonData = JSON.parse(data);
+                    const items = jsonData.items;
+                    let videos = [];
+                    
+                    // Extract video titles and IDs from the response
+                    for (const item of items) {
+                        if (videos.length >= 10) break; // Maximum of ten videos
+                        if (item.id.videoId) {
+                            videos.push({
+                                title: item.snippet.title,
+                                videoId: item.id.videoId,
+                                url: `https://www.youtube.com/watch?v=${item.id.videoId}`
+                            });
+                        }
+                    }
+                    
+                    resolve(videos);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }).on('error', (error) => {
             reject(error);
-          }
         });
-      }).on('error', (error) => {
-        reject(error);
-      });
     });
 }
-  
 
 
   function formatDataForAIStudent(sessions, studentId) {
