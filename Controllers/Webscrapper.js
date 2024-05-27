@@ -1,9 +1,16 @@
 import puppeteer from "puppeteer";
+import readline from "readline";
 
-const getQuotes = async () => {
+// Create an interface to read input from the console
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const getJobs = async (searchTerm) => {
   // Start a Puppeteer session with:
   // - a visible browser (`headless: false` - easier to debug because you'll see the browser in action)
-  // - no default viewport (`defaultViewport: null` - website page will be in full width and height)
+  // - a default viewport (`defaultViewport: null` - website page will be in full width and height)
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: null,
@@ -12,51 +19,59 @@ const getQuotes = async () => {
   // Open a new page
   const page = await browser.newPage();
 
-  // Navigate to the initial page
-  await page.goto("http://quotes.toscrape.com/", {
+  // Replace any spaces in the search term with "+"
+  const formattedSearchTerm = searchTerm.replace(/\s+/g, "+");
+
+  // Construct the URL with the formatted search term
+  const url = `https://www.bayt.com/en/pakistan/jobs/${formattedSearchTerm}-jobs/`;
+
+  // Navigate to the constructed URL
+  await page.goto(url, {
     waitUntil: "domcontentloaded",
   });
 
-  while (true) {
-    // Get page data
-    const quotes = await page.evaluate(() => {
-      // Fetch all elements with class "quote"
-      const quoteList = document.querySelectorAll(".quote");
+  try {
+ // Wait for the job listings to load
+await page.waitForSelector("li.has-pointer-d");
 
-      // Convert the quoteList to an iterable array
-      // For each quote fetch the text and author
-      return Array.from(quoteList).map((quote) => {
-        // Fetch the sub-elements from the previously fetched quote element
-        // Get the displayed text and return it (`.innerText`)
-        const text = quote.querySelector(".text").innerText;
-        const author = quote.querySelector(".author").innerText;
+// Get job data
+const jobs = await page.evaluate(() => {
+  const jobElements = document.querySelectorAll("div#results_inner_card.card-content");
+  const jobData = [];
+  jobElements.forEach((jobElement) => {
+    const titleElement = jobElement.querySelector("h3.s-18");
+    const companyElement = jobElement.querySelector("div.cname");
+    const locationElement = jobElement.querySelector("span.func-area");
+    const postedOnElement = jobElement.querySelector("div.col-md-12.float-left > span");
 
-        return { text, author };
-      });
-    });
-
-    // Display the quotes
-    console.log(quotes);
-
-    // Click on the "Next page" button if it exists
-    const nextPageButton = await page.$(".pager > .next > a");
-    if (!nextPageButton) {
-      // If there is no next page button, break the loop
-      break;
+    if (titleElement && companyElement && locationElement && postedOnElement) {
+      const title = titleElement.innerText.trim();
+      const company = companyElement.innerText.trim();
+      const location = locationElement.innerText.trim();
+      const postedOn = postedOnElement.innerText.trim();
+      jobData.push({ title, company, location, postedOn });
     }
+  });
+  return jobData;
+});
 
-    // Click on the "Next page" button and wait for navigation
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-      nextPageButton.click(),
-    ]);
+
+
+    // Display the jobs
+    console.log(jobs);
+  } catch (error) {
+    console.error("Error:", error);
+  } finally {
+    // Close the browser
+    await browser.close();
+
+    // Close the readline interface
+    rl.close();
   }
-
-  // Close the browser
-  await browser.close();
 };
 
-// Start the scraping
-getQuotes();
-
-
+// Ask the user to enter a keyword to search for jobs
+rl.question("Enter a keyword to search for jobs: ", (searchTerm) => {
+  // Start the scraping with the user's input
+  getJobs(searchTerm);
+});
