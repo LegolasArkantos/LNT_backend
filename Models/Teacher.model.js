@@ -50,21 +50,39 @@ polls: [{
   ref: 'Poll'
 }],
 
+notes: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Note'
+}],
 
 isApproved: {
   type: Boolean,
   default: false, 
 },
 
-personality: [String],
+personality: [Number],
 
 careerCounselling: {
   type : Boolean,
   default: false,
 },
+
 aboutMe: {
   type: String,
 },
+
+credentialFiles: [
+  {
+      fileName: {
+          type: String,
+          required: true,
+      },
+      fileUrl: {
+          type: String,
+          required: true,
+      }
+  }
+],
 
 });
 

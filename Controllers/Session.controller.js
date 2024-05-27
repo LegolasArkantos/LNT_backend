@@ -1,35 +1,43 @@
 const Session = require('../Models/Session.model');
 const Student = require('../Models/Student.model');
-const Teacher = require('../Models/Teacher.model')
+const Teacher = require('../Models/Teacher.model');
+const ReviewData = require('../Models/ReviewData.model');
 const mongoose = require("mongoose");
 
 const createSession = async (req, res) => {
   try {
     const teacherId = req.user.profileID;
-    const { startTime, endTime, status, subject, sessionPrice } = req.body;
+    const { startTime, endTime,  subject, sessionPrice,day, sessionDescription, sessionCount } = req.body;
 
-    // Find the teacher
     const teacher = await Teacher.findById(teacherId);
     
     if (!teacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    // Find the user associated with the teacher
     
 
-    // Create session with teacherName extracted from user info
     const session = await Session.create({
       teacher: teacherId,
       teacherName: `${teacher.firstName} ${teacher.lastName}`,
       students: [],
       startTime,
       endTime,
-      status,
+      status: 'In Review',
       paymentStatus: 'pending',
       subject,
       sessionPrice,
+      sessionDescription,
+      day,
+      sessionCounter: { // Use an embedded object here
+        sessionCount // Correct assignment of sessionCount
+      }
     });
+
+    await ReviewData.create({
+      session: session._id,
+      teacher: teacherId,
+    })
 
     // Add session to teacher's sessions array
     teacher.sessions.push(session._id);
@@ -55,9 +63,30 @@ const createSession = async (req, res) => {
 
 const getAvailableSessions = async (req, res) => {
   try {
-    const availableSessions = await Session.find({ status: 'scheduled' });
+    const studentId = req.user.profileID;
+    const matchedSessions = [];
+    const availableSessions = await Session.find({ status: 'scheduled', students: { $nin: [studentId] } }).populate('teacher');
+    const student = await Student.findById(studentId);
 
-    res.status(200).json({ sessions: availableSessions });
+    for (const session of availableSessions) {
+      const teacher = session.teacher;
+      var count = 0;
+      console.log("personality length", teacher.personality.length)
+      for (var i = 0; i < teacher.personality.length; i++) {
+        if (student.personality[i] === teacher.personality[i]) {
+          count++;
+          console.log(count)
+        }
+      }
+      console.log(count)
+      console.log(teacher.personality)
+    console.log(student.personality)
+      matchedSessions.push(session);
+    }
+    
+    matchedSessions.sort((a, b) => b.count - a.count);
+    const first10Sessions = matchedSessions.slice(0, 10);
+    res.status(200).json({ sessions: first10Sessions });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -124,7 +153,7 @@ const joinSession = async (req, res) => {
     try {
       const teacherId = req.user.profileID;
       const sessionId  = req.params.sessionId;
-      const { startTime, endTime, status, paymentStatus, subject, sessionPrice } = req.body;
+      const { startTime, endTime, status, paymentStatus, subject, sessionPrice ,day, sessionDescription} = req.body;
   
       // Find the session
       const session = await Session.findById(sessionId);
@@ -145,7 +174,9 @@ const joinSession = async (req, res) => {
       session.paymentStatus = paymentStatus || session.paymentStatus;
       session.subject = subject || session.subject;
       session.sessionPrice = sessionPrice || session.sessionPrice;
-  
+      session.day = day || session.day;
+      session.sessionDescription = sessionDescription || session.sessionDescription;
+
       await session.save();
   
       res.status(200).json({ message: 'Session updated successfully', session });
@@ -183,7 +214,7 @@ const searchSessionbyQuery = async (req, res) => {
   }
 
   try {
-    const sessions = await Session.find({ subject: { $regex: searchValue, $options: 'i' } }).populate('teacher students assignment');
+    const sessions = await Session.find({ subject: { $regex: searchValue, $options: 'i' }, status: "scheduled" }).populate('teacher students assignment');
     const student = await Student.findById(profileID);
     for (const session of sessions) {
       const teacher = session.teacher;
@@ -193,10 +224,13 @@ const searchSessionbyQuery = async (req, res) => {
           count++;
         }
       }
+      console.log("session name:", session.subject)
+      console.log("Student personality", student.personality)
+      console.log("Teacher personality", teacher.personality)
+      console.log("Count:", count)
       matchedSessions.push({count, session});
     }
     matchedSessions.sort((a, b) => b.count - a.count);
-
     res.status(200).json(matchedSessions);
   } catch (error) {
     console.error(error);
@@ -204,7 +238,54 @@ const searchSessionbyQuery = async (req, res) => {
   }
 }
 
+const launchSession = async (req, res) => {
+  try {
+      const sessionId = req.params.sessionId;
+      const session = await Session.findByIdAndUpdate(sessionId, {sessionStarted: true}, {new: true});
+      console.log(session)
+      if (!session) {
+          return res.status(500).json({message: 'failed to launch session'});
+      }
+      console.log("hello")
+      res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
 
+const endSession = async (req, res) => {
+  try {
+      const sessionId = req.params.sessionId;
+      const session = await Session.findByIdAndUpdate(sessionId, {sessionStarted: false, $inc: { 'sessionCounter.currentCount': 1 }}, {new: true});
+      if (!session) {
+          return res.status(500).json({message: 'failed to end session'});
+      }
+      console.log("hello")
+      res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+const sessionCompleted = async (req, res) => {
+  try {
+    const sessionId = req.params.sessionId;
+    const session = await Session.findByIdAndUpdate(sessionId, {status: "completed"}, {new: true});
+    if (!session) {
+        return res.status(500).json({message: 'failed to finish course'});
+    }
+    console.log("hello")
+    res.sendStatus(200);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
   
 module.exports = {
     createSession,
@@ -212,5 +293,8 @@ module.exports = {
     joinSession,
     updateSession,
     getSpecificSession,
-    searchSessionbyQuery
+    searchSessionbyQuery,
+    launchSession,
+    endSession,
+    sessionCompleted
 };

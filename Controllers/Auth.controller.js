@@ -1,10 +1,13 @@
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const User = require("../Models/User.model");
 const Teacher = require("../Models/Teacher.model");
 const Student = require("../Models/Student.model");
 const Notifications = require("../Models/Notification.model");
 const cloudinary = require("../Configuration/Cloudinary");
+const nodemailer = require('nodemailer')
+// const { Resend } = require('resend');
+// const resend = new Resend('re_ebZwohzh_JJcDA7PWetDuC6JXpZqdeEkq');
 
 // Generate JWT Token
 const generateToken = (userProfileId, role) => {
@@ -35,19 +38,16 @@ const signup = async (req, res) => {
     // Check password format (at least 8 characters, containing letters and numbers)
     const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])/;
     if (password.length < 8) {
-      return res
-        .status(501)
-        .send("Password must be at least 8 characters long");
+      return res.status(400).send("Password must be at least 8 characters long");
     }
-
     if (!passwordRegex.test(password)) {
       return res.status(400).send("Invalid password format");
     }
 
-    const result = await User.findOne({ email });
-
-    if (result != null) {
-      res.status(400).send("Email already exist, Please login.");
+    // Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).send("Email already exists. Please login.");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -58,81 +58,60 @@ const signup = async (req, res) => {
       role,
     });
 
-    if (role === "Teacher") {
+    if (role === "Teacher" || role === "Student") {
       const {
         firstName,
         lastName,
         profilePicture,
+        personality,
+        aboutMe,
         educationalCredential,
-        personality,
-        aboutMe,
+        educationalLevel,
+        credentialFiles
       } = req.body;
 
-      if (profilePicture === "") {
-        res.status(404).json({ message: "Pls upload Image" });
-      } else {
-        const result = await cloudinary.uploader.upload(profilePicture, {
-          upload_preset: "ml_default",
-          resource_type: "auto",
-        });
-
-        const profile = await Teacher.create({
-          firstName,
-          lastName,
-          profilePicture: result.secure_url,
-          educationalCredential,
-          personality,
-          aboutMe,
-        });
-        user.profileID = profile._id;
-
-        notifications = new Notifications({
-          profileID: profile._id,
-          role: "Teacher",
-        });
-        profile.notificationsID = notifications._id;
-        await notifications.save();
-        await profile.save();
+      if (!profilePicture) {
+        return res.status(400).json({ message: "Please upload a profile picture" });
       }
-    } else if (role === "Student") {
-      const {
+
+      const profileData = {
         firstName,
         lastName,
-        profilePicture,
-        educationalLevel,
+        profilePicture, // Assuming profilePicture is the URL of the profile picture from Firebase Storage
         personality,
         aboutMe,
-      } = req.body;
+      };
 
-      if (profilePicture === "") {
-        res.status(404).json({ message: "Pls upload Image" });
-      } else {
-        const result = await cloudinary.uploader.upload(profilePicture, {
-          upload_preset: "ml_default",
-          resource_type: "auto",
-        });
-
-        const profile = await Student.create({
-          firstName,
-          lastName,
-          profilePicture: result.secure_url,
-          educationalLevel,
-          personality,
-          aboutMe,
-        });
-        user.profileID = profile._id;
-
-        notifications = new Notifications({
-          profileID: profile._id,
-          role: "Student",
-        });
-
-        profile.notificationsID = notifications._id;
-        await notifications.save();
-        await profile.save();
+      if (role === "Teacher") {
+        profileData.educationalCredential = educationalCredential;
+        profileData.credentialFiles = credentialFiles;
+      } else if (role === "Student") {
+        profileData.educationalLevel = educationalLevel;
       }
+
+      let profile;
+      if (role === "Teacher") {
+        profile = await Teacher.create(profileData);
+      } else if (role === "Student") {
+        profile = await Student.create(profileData);
+      }
+
+      // Link the profile to the user
+      user.profileID = profile._id;
+
+      // Create and link notifications
+      const notifications = new Notifications({
+        profileID: profile._id,
+        role,
+      });
+      profile.notificationsID = notifications._id;
+
+      // Save everything
+      await notifications.save();
+      await profile.save();
     }
 
+    // Save the user
     const finalResult = await user.save();
 
     res.status(201).json(finalResult);
@@ -141,6 +120,9 @@ const signup = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+module.exports = { signup };
+
 
 const login = async (req, res) => {
   try {
@@ -202,9 +184,112 @@ const logout = async (req, res) => {
   return res.status(200).send("Logged out successfully");
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const user = await User.findOne({email});
+    if (!user) {
+      return res.status(404).json({message: "An account with this email does not exist!"})
+    }
+    const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
+    const token = jwt.sign({email: user.email, id: user._id}, secret, {expiresIn: "5m"});
+    const link = `${process.env.BASE_URL_BACKEND}/api/auth/reset-password/${user._id}/${token}`;
+    // await resend.emails.send({
+    //   from: "Learn and Track <onboarding@resend.dev>",
+    //   to: [email],
+    //   subject: "Learn and Track - Password Reset",
+    //   html: `<p>Click the link below to reset your password:</p><a href="${link}">Reset Password</a>`
+    // });
+    const transporter = nodemailer.createTransport(
+      {
+        host: "smtp-mail.outlook.com", // hostname
+        secureConnection: false, // TLS requires secureConnection to be false
+        port: 587, // port for secure SMTP
+        tls: {
+           ciphers:'SSLv3'
+        },
+          auth:{
+              user: process.env.MAIL_EMAIL,
+              pass: process.env.MAIL_PASSWORD
+          }
+      }
+    );
+    const mailOptions = {
+      from: `Learn and Track <${process.env.MAIL_EMAIL}>`,
+      to: email,
+      subject: `Password Reset: Learn and Track`,
+      html: `
+        <p>Hello,</p>
+        <p>You have requested to reset your password for Learn and Track. Click the link below to reset it:</p>
+        <a href="${link}">Reset Password</a>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+        <p>Best regards,<br/>Learn and Track Team</p>
+      `
+    };
+    transporter.sendMail(mailOptions, function(error, info){
+      if(error){
+          return console.log(error);
+      }
+  
+      console.log('Message sent: ' + info.response);
+  });
+    res.status(200).json({ message: "An email to reset the password has been sent to you!" })
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error, Please Try again" });
+  }
+}
+
+const resetPasswordVerify = async (req, res) => {
+  try {
+    const {id, token} = req.params;
+    console.log(req.params)
+    const user = await User.findOne({_id: id});
+    if (!user) {
+      return res.status(404).json({message: "An account with this email does not exist!"})
+    }
+    const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
+    const verify = jwt.verify(token, secret);
+    if (verify) {
+      console.log(process.env.BASE_URL_FRONTEND)
+      res.render("passwordReset", {email: verify.email,status: "Not Verified", BASE_URL_FRONTEND: process.env.BASE_URL_FRONTEND});
+    }
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error, Please Try again" });
+  }
+}
+
+const resetPassword = async (req, res) => {
+  try {
+    const {id, token} = req.params;
+    const user = await User.findOne({_id: id});
+    const {password} = req.body
+    if (!user) {
+      return res.status(404).json({message: "An account with this email does not exist!"})
+    }
+    const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
+    const verify = jwt.verify(token, secret);
+    if (verify) {
+      const encryptedPassword = await bcrypt.hash(password, 10);
+      await User.findByIdAndUpdate(id, {password: encryptedPassword});
+      res.render("passwordReset", {email: verify.email,status: "Verified", BASE_URL_FRONTEND: process.env.BASE_URL_FRONTEND});
+    }
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error, Please Try again" });
+  }
+}
+
 module.exports = {
   signup,
   login,
   getAccessToken,
   logout,
+  forgotPassword,
+  resetPasswordVerify,
+  resetPassword
 };

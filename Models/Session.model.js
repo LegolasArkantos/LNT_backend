@@ -10,7 +10,7 @@ const sessionSchema = new mongoose.Schema({
 
     teacherName:{type: String,
         required: true,
-        },
+    },
 
     students: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -22,10 +22,15 @@ const sessionSchema = new mongoose.Schema({
 
     endTime: {type: String,
         required: true,},
+    
+    day: {
+        type: String, 
+        required: true,
+    },
 
     status: {
         type: String,
-        enum: ['scheduled', 'completed', 'canceled']
+        enum: ['scheduled', 'completed', 'canceled', 'In Review']
     },
 
     paymentStatus: {
@@ -43,6 +48,28 @@ const sessionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Assignment',
     }],
+    quiz: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Quiz'
+    }],
+    sessionStarted: {
+        type: Boolean,
+        default: false
+    },
+    sessionDescription: {
+        type: String,
+        required: true
+    },
+    sessionCounter: {
+        currentCount: {
+            type: Number,
+            default: 0
+        },
+        sessionCount: {
+            type: Number,
+            required: true
+        }
+    }
 
 });
 

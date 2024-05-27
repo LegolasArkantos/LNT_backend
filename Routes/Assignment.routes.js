@@ -11,15 +11,19 @@ router.get('/getSessionAssignments/:sessionId', authMiddleware.authenticateUser,
 
 router.post('/grade/:submissionId',  authMiddleware.authenticateTeacher,assignmentController.gradeAssignment);
 
-router.get('/submit/:assignmentId', authMiddleware.authenticateStudent, assignmentController.submitSubmission);
+router.post('/submit/:assignmentId', authMiddleware.authenticateStudent, assignmentController.submitSubmission);
 
 router.post('/create/:sessionId',authMiddleware.authenticateTeacher,  assignmentController.createAssignment);
 
 router.put('/update/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.updateAssignment);
 
-router.get('/getAssignment/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.getAssignment);
+router.get('/getAssignment/:assignmentId', authMiddleware.authenticateUser,  assignmentController.getAssignment);
 
-router.post('/uploadFile/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.uploadFile);
+router.post('/uploadFiles/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.uploadFile);
+
+router.get('/getSubmission/:assignmentId', authMiddleware.authenticateStudent,  assignmentController.getSubmission);
+
+router.get('/getSubmissions/:assignmentId', authMiddleware.authenticateTeacher,  assignmentController.getSubmissions);
 
 
 

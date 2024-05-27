@@ -12,18 +12,35 @@ const submissionSchema = new mongoose.Schema({
         ref: 'Student',
         required: true,
     },
+    assignment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Assignment',
+    },
 
     studentName: {
         type: String,
         required: true,
     },
+
+    files: [
+        {
+            fileName: {
+                type: String,
+                required: true,
+            },
+            fileUrl: {
+                type: String,
+                required: true,
+            }
+        }
+    ],
     
     feedback: {
         type: String,
     },
 
     grade: {
-        type: String,
+        type: Number,
     }
 });
 

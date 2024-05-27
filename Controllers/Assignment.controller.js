@@ -2,6 +2,11 @@ const Assignment = require('../Models/Assignment.model');
 const Submission = require('../Models/Submission.model');
 const Session = require('../Models/Session.model');
 const cloudinary = require("../Configuration/Cloudinary");
+const Notifications = require('../Models/Notification.model');
+const Student = require("../Models/Student.model");
+const Progress = require("../Models/progress.model");
+const teacher = require("../Models/progress.model");
+
 
 
 const deleteAssignment = async (req, res) => {
@@ -35,11 +40,39 @@ const getSessionAssignments = async (req, res) => {
 
 const gradeAssignment = async (req, res) => {
     try {
+        const teacherId = req.user.profileID;
         const { submissionId } = req.params;
-        const { grade, feedback } = req.body;
+        const { grade, feedback, total, title, assignmentId, sessionId, subject } = req.body;
 
         await Submission.findByIdAndUpdate(submissionId, { grade, feedback });
 
+        let progress = await Progress.findOne({ teacher: teacherId });
+        if (!progress) {
+            progress = await Progress.create({ teacher: teacherId });
+        }
+
+        let session = progress.sessions.find(session => session.session.equals(sessionId));
+        if (!session) {
+            session = { session: sessionId, subject, assignments: [] };
+            progress.sessions.push(session);
+        }
+
+        const assignmentIndex = session.assignments.findIndex(a => a.assignmentId.equals(assignmentId));
+
+        if (assignmentIndex === -1) {
+            // If the assignment doesn't exist in the session, add it to the session
+            session.assignments.push({
+                assignmentId,
+                title,
+                total,
+                grades: [grade]
+            });
+        } else {
+            // If the assignment exists, update the grade
+            session.assignments[assignmentIndex].grades.push(grade);
+        }
+
+        await progress.save();
         
         res.status(200).json({ message: 'Assignment grade and feedback updated successfully' });
     } catch (error) {
@@ -48,16 +81,26 @@ const gradeAssignment = async (req, res) => {
     }
 };
 
+
+
 const submitSubmission = async (req, res) => {
     try {
         const { assignmentId } = req.params;
-        const { teacherId, studentId, studentName, feedback } = req.body;
+        const { files } = req.body;
+        const studentId = req.user.profileID;
+
+        await Submission.findOneAndDelete({ student: studentId, assignment: assignmentId });
+
+        const student = await Student.findById(studentId);
+        const { firstName, lastName } = student;
+        const studentName = `${firstName} ${lastName}`;
 
         const submission = new Submission({
-            teacher: teacherId,
             student: studentId,
             studentName,
-            feedback
+            files,
+            assignment: assignmentId ,
+            grade: -1
         });
 
         await submission.save();
@@ -70,6 +113,12 @@ const submitSubmission = async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
+
+
+
+
+
 
 const createAssignment = async (req, res) => {
     try {
@@ -87,12 +136,17 @@ const createAssignment = async (req, res) => {
         await assignment.save();
 
         // Find the session and update its assignments array
-        const session = await Session.findById(sessionId);
+        const session = await Session.findById(sessionId).populate('students');
         if (!session) {
             return res.status(404).json({ message: 'Session not found' });
         }
 
         session.assignment.push(assignment._id);
+        for (const student of session.students) {
+            const notification = await Notifications.findById(student.notificationsID);
+            notification.notifications.push({title: session.subject + ": New Assignment", timestamp: new Date(Date.now()).getHours() + ":" + new Date(Date.now()).getMinutes()});
+            await notification.save();
+        }
         await session.save();
 
         res.status(201).json({ message: 'Assignment created successfully', assignment });
@@ -106,7 +160,7 @@ const createAssignment = async (req, res) => {
 const updateAssignment = async (req, res) => {
     try {
         const { assignmentId } = req.params;
-        const { title, startTime, endTime, description, marks, submissions } = req.body;
+        const { title, startTime, endTime, description, marks } = req.body;
 
         await Assignment.findByIdAndUpdate(assignmentId, {
             title,
@@ -114,7 +168,7 @@ const updateAssignment = async (req, res) => {
             endTime,
             description,
             marks,
-            submissions
+            
         });
 
         res.status(200).json({ message: 'Assignment updated successfully' });
@@ -143,20 +197,78 @@ const getAssignment = async (req, res) => {
 const uploadFile = async (req, res) => {
     try {
         const { assignmentId } = req.params;
-                const base64Data = req.body.file;
+        const { files } = req.body;
+    
+        // Find the assignment by ID
+        const assignment = await Assignment.findById(assignmentId);
+        if (!assignment) {
+          return res.status(404).json({ message: 'Assignment not found' });
+        }
+    
+        // Update the assignment with file URLs and names
+        assignment.files.push(...files);
+    await assignment.save();
+    
+        res.json({ message: 'Files saved to assignment successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+      }
+};
 
-        // Upload file to Cloudinary
-        const result = await cloudinary.uploader.upload(base64Data, { resource_type: 'raw' });
+const getSubmission = async (req, res) => {
+    try {
+        const studentId = req.user.profileID; 
 
-        // Update assignment model with the secure URL from Cloudinary
-        const assignment = await Assignment.findByIdAndUpdate(assignmentId, { file: result.secure_url }, { new: true });
+        const { assignmentId } = req.params;
 
-        res.json({ assignment });
+        const submission = await Submission.findOne({ student: studentId, assignment: assignmentId });
+
+        if (!submission) {
+            return res.status(404).json({ message: 'Submission not found' });
+        }
+
+        const files = submission.files;
+        const feedback=submission.feedback;
+        const grade=submission.grade;
+
+        res.status(200).json({ files,grade,feedback  });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Internal Server Error" });
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-};
+
+
+}
+
+
+const getSubmissions = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+
+        const assignment = await Assignment.findById(assignmentId);
+
+        if (!assignment) {
+            return res.status(404).json({ message: 'Assignment not found' });
+        }
+
+        await assignment.populate('submissions')
+
+        const submissions = assignment.submissions.map(submission => ({
+            _id: submission._id,
+            studentName: submission.studentName,
+            files: submission.files,
+            grade: submission.grade
+        }));
+
+        res.status(200).json({ submissions });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+
+}
 
 module.exports = {
     createAssignment,
@@ -166,5 +278,8 @@ module.exports = {
     gradeAssignment,
     submitSubmission,
     getAssignment,
-    uploadFile
+    uploadFile,
+    getSubmission,
+    getSubmissions,
+    
 };
