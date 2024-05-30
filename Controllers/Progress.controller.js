@@ -153,7 +153,102 @@ const getQuizDataStudent = async (req, res) => {
 };
 
 
+const getTeacherSessions = async (req, res) => {
+  try {
+    const teacherId = req.user.profileID; 
+    const sessions = await Session.find({ teacher: teacherId }).select('subject');
+    res.json({ sessions });
+} catch (error) {
+    res.status(500).json({ error: 'Server error' });
+}
 
+
+}
+
+const getTeacherStudentsData = async (req, res) => {
+  const { sessionId } = req.params;
+
+  try {
+      // Fetch the selected session along with assignments and quizzes
+      const session = await Session.findOne({ _id: sessionId })
+          .populate({
+              path: 'assignment',
+              populate: { path: 'submissions' }
+          })
+          .populate({
+              path: 'quiz',
+              populate: { path: 'submissions' }
+          })
+          .populate('students');
+
+      if (!session) {
+          return res.status(404).json({ message: 'Session not found' });
+      }
+
+      const studentsGrades = [];
+
+      // Iterate over each student in the session
+      for (const student of session.students) {
+          const studentGrades = {
+              studentId: student._id,
+              studentName: `${student.firstName} ${student.lastName}`,
+              assignments: [],
+              quizzes: [],
+              totalMarksObtained: 0,
+              totalMaxMarks: 0,
+              overallPercentage: 0
+          };
+
+          // Process assignments for the student
+          for (const assignment of session.assignment) {
+              const submission = assignment.submissions.find(sub => sub.student.toString() === student._id.toString());
+              if (submission) {
+                  const marksObtained = submission.grade || 0;
+                  const maxMarks = parseFloat(assignment.marks);
+                  studentGrades.assignments.push({
+                      assignmentId: assignment._id,
+                      assignmentTitle: assignment.title,
+                      marksObtained,
+                      maxMarks
+                  });
+                  studentGrades.totalMarksObtained += marksObtained;
+                  studentGrades.totalMaxMarks += maxMarks;
+              }
+          }
+
+          // Process quizzes for the student
+          for (const quiz of session.quiz) {
+              const quizSubmission = quiz.submissions.find(sub => sub.student.toString() === student._id.toString());
+              if (quizSubmission) {
+                  const marksObtained = quizSubmission.marks || 0;
+                  const maxMarks = parseFloat(quiz.marks);
+                  studentGrades.quizzes.push({
+                      quizId: quiz._id,
+                      quizTitle: quiz.title,
+                      marksObtained,
+                      maxMarks
+                  });
+                  studentGrades.totalMarksObtained += marksObtained;
+                  studentGrades.totalMaxMarks += maxMarks;
+              }
+          }
+
+          // Calculate overall percentage
+          if (studentGrades.totalMaxMarks > 0) {
+              studentGrades.overallPercentage = (studentGrades.totalMarksObtained / studentGrades.totalMaxMarks) * 100;
+          }
+
+          studentsGrades.push(studentGrades);
+      }
+
+      res.status(200).json(studentsGrades);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+
+
+}
 
 
 module.exports = {
@@ -161,5 +256,8 @@ module.exports = {
     getQuizData,
     getAssigDataStudent,
     getQuizDataStudent,
+    getTeacherSessions,
+    getTeacherStudentsData
+
   };
   
