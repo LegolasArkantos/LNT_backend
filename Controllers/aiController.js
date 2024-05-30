@@ -81,7 +81,7 @@ async function generateStory(req, res) {
 
         // Format the populated data for passing to the AI model
         const dataForAI = formatDataForAI(teacher, quizData);
-
+        console.log("yes : "+dataForAI)
         // Generate AI content
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const result = await model.generateContent(customMessage + " " + dataForAI);
@@ -97,6 +97,9 @@ async function generateStory(req, res) {
 
 // Function to format data for AI
 function formatDataForAI(teacher, quizData) {
+
+    
+
     // Prepare the data in a suitable format for the AI model
     const data = {
         firstName: teacher.firstName,
@@ -126,6 +129,132 @@ function formatDataForAI(teacher, quizData) {
     const formattedData = JSON.stringify(data);
     return formattedData;
 }
+
+
+
+// Updated graphData function
+async function graphData(req, res) {
+    const teacherId = req.user.profileID;
+    const { sessionId } = req.params;
+  
+    try {
+      const session = await Session.findOne({ _id: sessionId, teacher: teacherId })
+        .populate({
+          path: 'assignment',
+          populate: { path: 'submissions' }
+        })
+        .populate({
+          path: 'quiz',
+          populate: { path: 'submissions' }
+        });
+  
+      if (!session) {
+        return res.status(404).json({ message: 'Session not found' });
+      }
+  
+      const analyticsData = {
+        assignments: [],
+        quizzes: [],
+        passFailRatio: {
+          totalAssignments: 0,
+          totalQuizzes: 0,
+          totalPassed: 0,
+          totalFailed: 0
+        }
+      };
+  
+      session.assignment.forEach(assignment => {
+        const totalSubmissions = assignment.submissions.length;
+        const failedSubmissions = assignment.submissions.filter(sub => sub.grade < assignment.marks / 2).length;
+  
+        analyticsData.assignments.push({
+          sessionId: session._id,
+          sessionName: session.subject,
+          assignmentId: assignment._id,
+          assignmentTitle: assignment.title,
+          totalSubmissions,
+          failedSubmissions
+        });
+  
+        analyticsData.passFailRatio.totalAssignments += totalSubmissions;
+        analyticsData.passFailRatio.totalFailed += failedSubmissions;
+        analyticsData.passFailRatio.totalPassed += totalSubmissions - failedSubmissions; // Calculate passed submissions
+      });
+  
+      session.quiz.forEach(quiz => {
+        const totalSubmissions = quiz.submissions.length;
+        const failedSubmissions = quiz.submissions.filter(sub => sub.marks < quiz.marks / 2).length;
+  
+        analyticsData.quizzes.push({
+          sessionId: session._id,
+          sessionName: session.subject,
+          quizId: quiz._id,
+          quizTitle: quiz.title,
+          totalSubmissions,
+          failedSubmissions
+        });
+  
+        analyticsData.passFailRatio.totalQuizzes += totalSubmissions;
+        analyticsData.passFailRatio.totalFailed += failedSubmissions;
+        analyticsData.passFailRatio.totalPassed += totalSubmissions - failedSubmissions; // Calculate passed submissions
+      });
+  
+      console.log("Analytics Data:", JSON.stringify(analyticsData, null, 2));
+      res.status(200).json(analyticsData);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+  
+
+
+
+
+
+
+const getSessionids = async (req, res) => {
+
+    try {
+        const teacherId = req.user.profileID; 
+    
+        // Fetch sessions for the teacher
+        const sessions = await Session.find({ teacher: teacherId }).select('subject _id'); 
+    
+        // Send the response with session names and IDs
+        res.json({ sessions });
+      } catch (error) {
+        console.error('Error fetching sessions:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const https = require('https');
 async function generateAnalysisStudent(req, res) {
     try {
@@ -264,4 +393,7 @@ async function generateAnalysisStudent(req, res) {
     generateStory,
     generateAnalysis,
     generateAnalysisStudent,
+    graphData,
+    getSessionids,
+
   };
