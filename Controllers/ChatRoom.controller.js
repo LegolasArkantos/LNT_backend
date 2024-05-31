@@ -167,11 +167,11 @@ const sendMessage = async (req, res) => {
           const notification = await Notifications.findById(student.notificationsID);
           
           if (!notification) {
-            console.log("hello1")
+            
             res.status(404).json({messg: "Notifications not found!"});
           }
           else {
-            console.log("hello2")
+            
             notification.notifications.push({title: "Message received from: " + message.user.name, timestamp: message.timestamp });
             await notification.save();
           }
@@ -183,11 +183,11 @@ const sendMessage = async (req, res) => {
           const teacher = await Teacher.findById(part.participant);
           const notification = await Notifications.findById(teacher.notificationsID);
           if (!notification) {
-            console.log("hello3")
+            
             res.status(404).json({messg: "Notifications not found!"});
           }
           else {
-            console.log("hello4")
+            
             notification.notifications.push({title: "Message received from: " + message.user.name, timestamp: message.timestamp });
             await notification.save();
           }
@@ -199,7 +199,7 @@ const sendMessage = async (req, res) => {
       }
     }
 
-    console.log("hello chatroom")
+    
     chatRoom.messages.push(message);
 
     await chatRoom.save();

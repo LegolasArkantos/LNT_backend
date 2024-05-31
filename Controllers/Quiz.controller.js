@@ -7,7 +7,7 @@ const Notifications = require('../Models/Notification.model');
 const createQuiz = async (req, res) => {
     try {
         const sessionId = req.params.sessionId;
-        console.log("questions", req.body.questions)
+        
         const quiz = await Quiz.create({
             title: req.body.title,
             marks: req.body.marks,
@@ -81,7 +81,7 @@ const getAllSubmission = async (req, res) => {
                 path: 'student' 
             }
         });
-        console.log(submissions);
+        
         res.status(200).json(submissions.submissions);
     }
     catch (error) {
@@ -93,7 +93,7 @@ const getAllSubmission = async (req, res) => {
 const uploadQuestionsFromFile = (req, res) => {
     try {
         const file = req.file;
-        console.log(file);
+        
         if (file) {
             mammoth.extractRawText({ buffer: file.buffer })
             .then((result) => {

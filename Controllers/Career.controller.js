@@ -200,11 +200,11 @@ const launchCounselling = async (req, res) => {
   try {
       const careerId = req.params.careerId;
       const career = await TeacherCareer.findByIdAndUpdate(careerId, {counsellingSessionStarted: true}, {new: true});
-      console.log(career)
+      
       if (!career) {
           return res.status(500).json({message: 'failed to launch counselling'});
       }
-      console.log("hello")
+      
       res.sendStatus(200);
   }
   catch (error) {
@@ -220,7 +220,7 @@ const endCounselling = async (req, res) => {
       if (!career) {
           return res.status(500).json({message: 'failed to end counselling'});
       }
-      console.log("hello")
+      
       res.sendStatus(200);
   }
   catch (error) {
