@@ -9,6 +9,7 @@ router.get("/generate-analysis",authMiddleware.authenticateUser, aiController.ge
 router.get("/generate-analysis-student",authMiddleware.authenticateUser, aiController.generateAnalysisStudent);
 router.get("/analytics/:sessionId",authMiddleware.authenticateUser, aiController.graphData);
 router.get("/sessions",authMiddleware.authenticateUser, aiController.getSessionids);
+router.get("/getJobs",authMiddleware.authenticateUser, aiController.getJobs);
 
 
 module.exports = router;
