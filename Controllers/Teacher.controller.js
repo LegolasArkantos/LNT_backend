@@ -1,6 +1,5 @@
  const Session = require('../Models/Session.model');
 const Teacher = require('../Models/Teacher.model');
-// const User = require('../Models/User.model');
 const Student = require('../Models/Student.model');
 
 
@@ -43,41 +42,7 @@ const getMySessions = async (req, res) => {
       // Find sessions for the teacher
       const sessions = await Session.find({ teacher: teacherId, status: "scheduled" }).populate('students');
 
-      console.log(sessions)
-      //const studentsData = [];
-  
-      // Loop through sessions
-    //   for (const session of sessions) {
-    //     const sessionData = {
-    //       teacher: session.teacher,
-    //       sessionId :session.id,
-    //       subject: session.subject,
-    //       startTime: session.startTime,
-    //       endTime: session.endTime,
-    //       paymentStatus:session.paymentStatus,
-    //       status:session.status,
-    //       sessionPrice:session.sessionPrice,
-    //       teacherName: session.teacherName,
-    //       students: [],
-    //     };
-  
-    //     // Loop through students of the session
-    //     for (const studentId of session.students) {
-    //       const student = await Student.findById(studentId);
-  
-    //       if (student) {
-    //         sessionData.students.push({
-    //           studentId: student.id,
-    //           firstName: student.firstName,
-    //           lastName: student.lastName,
-    //           profilePicture: student.profilePicture,
-              
-    //         });
-    //       }
-    //     }
-  
-    //     studentsData.push(sessionData);
-    //   }
+      
       res.status(200).json({ sessions });
     } catch (error) {
       console.error(error);
@@ -160,24 +125,7 @@ const getStudent = async (req, res) => {
   try {
       const { studentId } = req.params;
 
-      // Find the student and populate 'sessions' and 'teachers' fields with relevant details
       const student = await Student.findById(studentId)
-          // .populate({
-          //     path: 'sessions',
-          //     select: ['startTime', 'endTime', 'status', 'paymentStatus', 'teacherName','subject', 'sessionPrice']
-          // })
-          // .populate({
-          //     path: 'teachers',
-          //     select: ['educationalCredentials', 'subjectsTaught', 'availableTimeSlots'],
-          //     populate: {
-          //         path: 'user',
-          //         select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
-          //     }
-          // })
-          // .populate({
-          //     path: 'user',
-          //     select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
-          // })
       
       if (!student) {
           return res.status(404).json({ message: 'Student not found' });
@@ -194,24 +142,7 @@ const getTeacher = async (req, res) => {
   try {
       const { teacherId } = req.params;
 
-      // Find the student and populate 'sessions' and 'teachers' fields with relevant details
       const teacher = await Teacher.findById(teacherId)
-          // .populate({
-          //     path: 'sessions',
-          //     select: ['startTime', 'endTime', 'status', 'paymentStatus', 'teacherName','subject', 'sessionPrice']
-          // })
-          // .populate({
-          //     path: 'teachers',
-          //     select: ['educationalCredentials', 'subjectsTaught', 'availableTimeSlots'],
-          //     populate: {
-          //         path: 'user',
-          //         select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
-          //     }
-          // })
-          // .populate({
-          //     path: 'user',
-          //     select: ['firstName', 'lastName', 'email', 'contactInformation', 'profilePicture']
-          // })
       
       if (!teacher) {
           return res.status(404).json({ message: 'Teacher not found' });
