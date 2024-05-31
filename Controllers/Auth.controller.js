@@ -244,7 +244,7 @@ const forgotPassword = async (req, res) => {
 const resetPasswordVerify = async (req, res) => {
   try {
     const {id, token} = req.params;
-    console.log(req.params)
+    
     const user = await User.findOne({_id: id});
     if (!user) {
       return res.status(404).json({message: "An account with this email does not exist!"})
@@ -252,7 +252,7 @@ const resetPasswordVerify = async (req, res) => {
     const secret = process.env.ACCESS_TOKEN_SECRET + user.password;
     const verify = jwt.verify(token, secret);
     if (verify) {
-      console.log(process.env.BASE_URL_FRONTEND)
+      
       res.render("passwordReset", {email: verify.email,status: "Not Verified", BASE_URL_FRONTEND: process.env.BASE_URL_FRONTEND});
     }
   }

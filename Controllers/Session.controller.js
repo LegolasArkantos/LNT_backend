@@ -71,16 +71,15 @@ const getAvailableSessions = async (req, res) => {
     for (const session of availableSessions) {
       const teacher = session.teacher;
       var count = 0;
-      console.log("personality length", teacher.personality.length)
+      
       for (var i = 0; i < teacher.personality.length; i++) {
         if (student.personality[i] === teacher.personality[i]) {
           count++;
-          console.log(count)
+          
         }
       }
-      console.log(count)
-      console.log(teacher.personality)
-    console.log(student.personality)
+      
+      
       matchedSessions.push(session);
     }
     
@@ -224,10 +223,7 @@ const searchSessionbyQuery = async (req, res) => {
           count++;
         }
       }
-      console.log("session name:", session.subject)
-      console.log("Student personality", student.personality)
-      console.log("Teacher personality", teacher.personality)
-      console.log("Count:", count)
+      
       matchedSessions.push({count, session});
     }
     matchedSessions.sort((a, b) => b.count - a.count);
@@ -242,11 +238,11 @@ const launchSession = async (req, res) => {
   try {
       const sessionId = req.params.sessionId;
       const session = await Session.findByIdAndUpdate(sessionId, {sessionStarted: true}, {new: true});
-      console.log(session)
+      
       if (!session) {
           return res.status(500).json({message: 'failed to launch session'});
       }
-      console.log("hello")
+      s
       res.sendStatus(200);
   }
   catch (error) {
@@ -262,7 +258,6 @@ const endSession = async (req, res) => {
       if (!session) {
           return res.status(500).json({message: 'failed to end session'});
       }
-      console.log("hello")
       res.sendStatus(200);
   }
   catch (error) {
@@ -278,7 +273,7 @@ const sessionCompleted = async (req, res) => {
     if (!session) {
         return res.status(500).json({message: 'failed to finish course'});
     }
-    console.log("hello")
+    
     res.sendStatus(200);
   }
   catch (error) {
