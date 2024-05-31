@@ -31,7 +31,6 @@ const generateStory = async (req, res) => {
 
     // Format job data for AI input
     let jobInfo = jobs.map(job => `Job Title: ${job.job_title}, Company: ${job.employer_name}, Salary: ${job.job_min_salary ? job.job_min_salary : 'Not specified'}-${job.job_max_salary ? job.job_max_salary : 'Not specified'}, Skills: ${job.job_required_skills ? job.job_required_skills.join(', ') : 'Not specified'}, Job Apply Link: ${job.job_apply_link}`).join("\n");
-    console.log("job info"+jobInfo)
     const result1 = await model.generateContent(customMessage1 + prompts.educationalBackground + "and here is availibale jobs along with links: " + jobInfo);
     const response1 = await result1.response;
     const text1 = await response1.text();
@@ -53,7 +52,7 @@ const generateStory = async (req, res) => {
 
   async function generateAnalysis(req, res) {
     try {
-        const customMessage = "Do a indepth analysis tell me the students with the worst grades and in what, along with guidelines to help them and other points of interest you noticed.look over both quizes and assigments and also recommend ways to help him. Try to make it a detailed reply"
+        const customMessage = "Do a indepth analysis tell me the students with the worst grades and in what, along with guidelines to help them and other points of interest you noticed.look over both quizes and assigments and also recommend ways to help him.important note : -1 grade means ungraded by teacher, so instead -1 show yet to be graded. Try to make it a detailed reply"
         ;
         const teacherId = req.user.profileID;
 
@@ -84,7 +83,7 @@ const generateStory = async (req, res) => {
 
         // Format the populated data for passing to the AI model
         const dataForAI = formatDataForAI(teacher, quizData);
-        console.log("yes : "+dataForAI)
+        
         // Generate AI content
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const result = await model.generateContent(customMessage + " " + dataForAI);
@@ -202,7 +201,7 @@ async function graphData(req, res) {
         analyticsData.passFailRatio.totalPassed += totalSubmissions - failedSubmissions; // Calculate passed submissions
       });
   
-      console.log("Analytics Data:", JSON.stringify(analyticsData, null, 2));
+      
       res.status(200).json(analyticsData);
     } catch (error) {
       console.error(error);
@@ -262,7 +261,7 @@ const https = require('https');
 async function generateAnalysisStudent(req, res) {
     try {
         
-        const customMessage = "Do an in-depth analysis of the student's performance in assignments and quizzes. Highlight areas of weakness, provide suggestions for improvement, and recommend resources and youtube links for further study. Provide detailed feedback. important rules: never say students id, use his name. The youtube link should be of a video, not a channel";
+        const customMessage = "Do an in-depth analysis of the student's performance in assignments and quizzes. Highlight areas of weakness, provide suggestions for improvement, and recommend resources and youtube links for further study. Provide detailed feedback. important rules: never say students id, use his name. The youtube link should be of a video, not a channel. Also grade -1 means ungraded by teacher so do not mention it as it is not graded yet. Try to use paragraphs. ";
         const customMessage1="i will prvode u will student data, your job is to identify topics he needs help in and then give me 2 of topics he needs help in most so i can query those and get youtube links. example output should:(topic/another topic). the / is necceasry to separaate dif video suggestions . only give me the suggestions , do not tell me name or any other info about student.try to make the topics suggestions as discriptive as possible to help youtbe algorithm give better suggestions . Do not give back suggestions called quiz 1 , assigment 1 or anything similair:  "
         const studentId = req.user.profileID;
 
@@ -299,7 +298,7 @@ async function generateAnalysisStudent(req, res) {
         const result3 = await model.generateContent(customMessage1 + " " + dataForAI);
         const response3 = await result3.response;
         const text3 = await response3.text();
-        console.log(text3)
+        
 
         const topics = text3.split(' / ').map(topic => topic.trim());
         const videos = await searchYouTube(topics);
@@ -318,7 +317,7 @@ async function generateAnalysisStudent(req, res) {
 
   async function searchYouTube(queries) {
     const combinedQuery = queries.join('|');
-    console.log(combinedQuery)
+    
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(combinedQuery)}&key=${API_KEY}`;
     
     return new Promise((resolve, reject) => {

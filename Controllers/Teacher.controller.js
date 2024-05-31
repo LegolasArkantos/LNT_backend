@@ -43,7 +43,7 @@ const getMySessions = async (req, res) => {
       // Find sessions for the teacher
       const sessions = await Session.find({ teacher: teacherId, status: "scheduled" }).populate('students');
 
-      console.log(sessions)
+      
       //const studentsData = [];
   
       // Loop through sessions
@@ -148,7 +148,7 @@ const getMySessions = async (req, res) => {
                 });
             }
         }
-        console.log(sessionData)
+        
         res.status(200).json({ sessionData });
     } catch (error) {
         console.error(error);
