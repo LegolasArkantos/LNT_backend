@@ -242,7 +242,7 @@ const launchSession = async (req, res) => {
       if (!session) {
           return res.status(500).json({message: 'failed to launch session'});
       }
-      s
+      
       res.sendStatus(200);
   }
   catch (error) {
